@@ -70,7 +70,7 @@ public class LineGraph extends Pane {
             case GRAPH:
                 path = "M0,"+this.getHeight();
                 renderGraph();
-                path += "L"+this.getWidth()+","+this.getHeight();
+                path += "L"+String.valueOf(this.currentX-interval)+","+this.getHeight();
                 graphPath.setContent(path);
                 break;
             case LINES:
@@ -88,7 +88,7 @@ public class LineGraph extends Pane {
                 renderLines();
                 renderPoints();
 
-                path += "L"+this.getWidth()+","+this.getHeight();
+                path += "L"+String.valueOf(this.currentX-interval)+","+this.getHeight();
 
                 graphPath.setContent(path);
                 pointLines.setContent(pointLinesPath);
@@ -159,14 +159,14 @@ public class LineGraph extends Pane {
     }
 
     private void renderLines(){
-        for(int i = 1; i<points.size(); i++){
+        for(int i = 1; i<points.size()-1; i++){
             pointLinesPath += "M"+points.get(i).getX() +","+points.get(i).getY();
             pointLinesPath +="V"+this.getHeight();
         }
     }
 
     private void renderPoints(){
-        for(int i = 1; i<points.size(); i++){
+        for(int i = 1; i<points.size()-1; i++){
             Circle c = new Circle(points.get(i).getX(), points.get(i).getY(),circleStyle.getRadius(), circleStyle.getFill());
             c.setStroke(circleStyle.getStroke());
             c.setStyle(circleStyle.getStyle());

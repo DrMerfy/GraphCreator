@@ -1,6 +1,8 @@
 # GraphCreator
 A simple and configurable graph creator using JavaFX.
 
+![Current Release](https://github.com/DrMerfy/GraphCreator/releases/tag/v0.3)
+
 ## class LineGraph()
 
 ### Linear line graphs

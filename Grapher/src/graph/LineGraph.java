@@ -11,8 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 
 import static java.lang.Math.*;
-import static javafx.scene.paint.Color.BLACK;
-import static javafx.scene.paint.Color.TRANSPARENT;
+import static javafx.scene.paint.Color.*;
 
 public class LineGraph extends Pane {
     public enum Render {
@@ -36,6 +35,7 @@ public class LineGraph extends Pane {
 
     //Styling values
     private double smoothing;
+    private Circle circleStyle;
 
 
     public LineGraph(double width, double height) {
@@ -54,10 +54,15 @@ public class LineGraph extends Pane {
 
         //Styling values
         this.smoothing = 0.2;
+        this.circleStyle = new Circle();
         graphPath.setStrokeWidth(1);
         graphPath.setStroke(BLACK);
         graphPath.setFill(TRANSPARENT);
         graphPath.setStrokeLineJoin(StrokeLineJoin.ROUND);
+        pointLines.setStrokeWidth(0.5);
+        pointLines.setStroke(BLACK);
+        circleStyle.setRadius(2);
+        circleStyle.setFill(BLACK);
     }
 
     public void render(Render value){
@@ -81,15 +86,13 @@ public class LineGraph extends Pane {
                 pointLinesPath = "M"+points.get(0).getX() +","+points.get(0).getY();
                 renderGraph();
                 renderLines();
+                renderPoints();
 
                 path += "L"+this.getWidth()+","+this.getHeight();
 
                 graphPath.setContent(path);
                 pointLines.setContent(pointLinesPath);
         }
-
-
-        pointLines.setStroke(BLACK);
 
 
         this.getChildren().addAll(graphPath, pointLines, pointDots);
@@ -111,8 +114,12 @@ public class LineGraph extends Pane {
         return graphPath;
     }
 
-    public void setGraphPath(SVGPath graphPath) {
-        this.graphPath = graphPath;
+    public SVGPath getPointLines() {
+        return pointLines;
+    }
+
+    public Circle getCircleStyle() {
+        return circleStyle;
     }
 
     public void addValue(int value){
@@ -160,7 +167,10 @@ public class LineGraph extends Pane {
 
     private void renderPoints(){
         for(int i = 1; i<points.size(); i++){
-            pointDots.getChildren().add(new Circle(points.get(i).getX(), points.get(i).getY(),2, BLACK));
+            Circle c = new Circle(points.get(i).getX(), points.get(i).getY(),circleStyle.getRadius(), circleStyle.getFill());
+            c.setStroke(circleStyle.getStroke());
+            c.setStyle(circleStyle.getStyle());
+            pointDots.getChildren().add(c);
         }
     }
 

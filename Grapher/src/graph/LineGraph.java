@@ -36,11 +36,12 @@ public class LineGraph extends Pane {
     //Styling values
     private double smoothing;
     private Circle circleStyle;
+    private boolean close;
 
 
     public LineGraph(double width, double height) {
         this.interval = 1;
-        this.currentX = 10;
+        this.currentX = 0;
         this.setWidth(width);
         this.setHeight(height);
         this.setMinWidth(width);
@@ -55,6 +56,7 @@ public class LineGraph extends Pane {
         //Styling values
         this.smoothing = 0.2;
         this.circleStyle = new Circle();
+        this.close = true;
         graphPath.setStrokeWidth(1);
         graphPath.setStroke(BLACK);
         graphPath.setFill(TRANSPARENT);
@@ -70,16 +72,19 @@ public class LineGraph extends Pane {
             case GRAPH:
                 path = "M0,"+this.getHeight();
                 renderGraph();
-                path += "L"+String.valueOf(this.currentX-interval)+","+this.getHeight();
+                path += close? "L"+String.valueOf(this.currentX-interval)+","+this.getHeight(): "";
                 graphPath.setContent(path);
+                this.getChildren().add(graphPath);
                 break;
             case LINES:
                 pointLinesPath = "M"+points.get(0).getX() +","+points.get(0).getY();
                 renderLines();
                 pointLines.setContent(pointLinesPath);
+                this.getChildren().add(pointLines);
                 break;
             case POINTS:
                 renderPoints();
+                this.getChildren().add(pointDots);
                 break;
             case ALL:
                 path = "M0,"+this.getHeight();
@@ -88,14 +93,12 @@ public class LineGraph extends Pane {
                 renderLines();
                 renderPoints();
 
-                path += "L"+String.valueOf(this.currentX-interval)+","+this.getHeight();
+                path += close? "L"+String.valueOf(this.currentX-interval)+","+this.getHeight(): "";
 
                 graphPath.setContent(path);
                 pointLines.setContent(pointLinesPath);
+                this.getChildren().addAll(graphPath, pointLines, pointDots);
         }
-
-
-        this.getChildren().addAll(graphPath, pointLines, pointDots);
     }
 
     public void setInterval(int interval) {
@@ -108,6 +111,14 @@ public class LineGraph extends Pane {
 
     public void setSmoothing(double smoothing) {
         this.smoothing = smoothing;
+    }
+
+    public boolean isClose() {
+        return close;
+    }
+
+    public void setClose(boolean close) {
+        this.close = close;
     }
 
     public SVGPath getGraphPath() {
@@ -141,7 +152,7 @@ public class LineGraph extends Pane {
         //see: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
         Point2D controlStart;
         Point2D controlEnd;
-        //pointLinesPath +="V"+this.getHeight();
+        path += "L"+points.get(0).getX()+","+points.get(0).getY();
 
         controlStart = getControlPoint(null, points.get(0), points.get(1), false);
         controlEnd = getControlPoint(points.get(0), points.get(1), points.get(2), true);
@@ -156,28 +167,38 @@ public class LineGraph extends Pane {
             path += "C" + controlStart.getX() + "," + controlStart.getY() + "," + controlEnd.getX() + "," + controlEnd.getY() + "," +
                     points.get(i).getX() + "," + points.get(i).getY();
         }
+
+        int last = points.size() - 1;
+        controlStart = getControlPoint(points.get(last - 1), points.get(last), null, false);
+        controlEnd = getControlPoint(points.get(last), null , null, true);
+        path += "C" + controlStart.getX() + "," + controlStart.getY() + "," + controlEnd.getX() + "," + controlEnd.getY() + "," +
+                points.get(last).getX() + "," + points.get(last).getY();
     }
 
     private void renderLines(){
-        for(int i = 1; i<points.size()-1; i++){
+        for(int i = 0; i<points.size(); i++){
             pointLinesPath += "M"+points.get(i).getX() +","+points.get(i).getY();
             pointLinesPath +="V"+this.getHeight();
         }
     }
 
     private void renderPoints(){
-        for(int i = 1; i<points.size()-1; i++){
+        for(int i = 0; i<points.size(); i++){
             Circle c = new Circle(points.get(i).getX(), points.get(i).getY(),circleStyle.getRadius(), circleStyle.getFill());
             c.setStroke(circleStyle.getStroke());
+            c.setStrokeWidth(circleStyle.getStrokeWidth());
+            c.setStrokeType(circleStyle.getStrokeType());
+            c.setStrokeLineJoin(circleStyle.getStrokeLineJoin());
+            c.setStrokeLineCap(circleStyle.getStrokeLineCap());
             c.setStyle(circleStyle.getStyle());
             pointDots.getChildren().add(c);
         }
     }
 
     @NotNull
-    private Point2D getControlPoint(@Nullable Point2D prevPoint, Point2D point, @Nullable Point2D nextPoint, boolean reverse){
+    private Point2D getControlPoint(@Nullable Point2D prevPoint, @Nullable Point2D point, @Nullable Point2D nextPoint, boolean reverse){
         if(point == null)
-            point = new Point2D(0,0);
+            point = prevPoint;
         if(prevPoint == null)
             prevPoint = point;
         if(nextPoint == null)

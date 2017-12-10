@@ -1,2 +1,2 @@
 # GraphCreator
-A graph creator for JavaFX
+A simple and configurable graph creator using JavaFX.

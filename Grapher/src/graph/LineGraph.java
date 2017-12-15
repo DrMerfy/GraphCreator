@@ -28,6 +28,10 @@ public class LineGraph extends Pane {
     private String pointLinesPath;
     private ArrayList<Point2D> points;
 
+    private double maxValue;
+    private double minValue;
+    private boolean isRendered;
+
     //Layers
     private SVGPath graphPath;
     private SVGPath pointLines;
@@ -47,6 +51,7 @@ public class LineGraph extends Pane {
         this.setMinWidth(width);
         this.setMinHeight(height);
         this.points = new ArrayList<>();
+        this.isRendered = false;
 
         //Layers
         this.graphPath = new SVGPath();
@@ -68,6 +73,7 @@ public class LineGraph extends Pane {
     }
 
     public void render(Render value){
+        isRendered = true;
         switch (value){
             case GRAPH:
                 path = "M0,"+this.getHeight();
@@ -99,10 +105,22 @@ public class LineGraph extends Pane {
                 pointLines.setContent(pointLinesPath);
                 this.getChildren().addAll(graphPath, pointLines, pointDots);
         }
+        maxValue = points.get(0).getY();
+        minValue = points.get(0).getY();
+        for(Point2D p : points){
+            if(maxValue < p.getY())
+                maxValue = p.getY();
+            if(minValue > p.getY())
+                minValue = p.getY();
+        }
     }
 
     public void setInterval(int interval) {
         this.interval = interval;
+    }
+
+    public int getInterval() {
+        return interval;
     }
 
     public double getSmoothing() {
@@ -111,6 +129,18 @@ public class LineGraph extends Pane {
 
     public void setSmoothing(double smoothing) {
         this.smoothing = smoothing;
+    }
+
+    public int getNumberOfPoints(){
+        return points.size();
+    }
+
+    public double getMaxValue() {
+        return maxValue;
+    }
+
+    public double getMinValue() {
+        return minValue;
     }
 
     public boolean isClose() {
@@ -133,7 +163,11 @@ public class LineGraph extends Pane {
         return circleStyle;
     }
 
-    public void addValue(int value){
+    public boolean isRendered() {
+        return isRendered;
+    }
+
+    public void addValue(double value){
         addPoint(new Point2D(currentX, value));
         currentX+= interval;
     }

@@ -2,20 +2,33 @@ package graph.plotter;
 
 import graph.LineGraph;
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 public class Plotter extends Application {
     private static LineGraph graph;
 
-    private static int stageInitialization = 0;
+    //Axis related fields
+    private static boolean xMapped = false;
+    private static double xStart;
+    private static double xEnd;
+    private static double xIncrement;
+    private static double mappedXStart;
+    private static double mappedXEnd;
+
+    private static boolean yMapped = false;
+    private static double yStart;
+    private static double yEnd;
+    private static double yIncrement;
+    private static double mappedYStart;
+    private static double mappedYEnd;
+
     private static double values =0;
 
     public static void plot(LineGraph graph){
@@ -27,14 +40,66 @@ public class Plotter extends Application {
         }
     }
 
+    public static void mapXAxis(double start, double end){
+        mappedXStart = start;
+        mappedXEnd = end;
+        xMapped = true;
+    }
+
+    public static void mapYAxis(double start, double end){
+        mappedYStart = start;
+        mappedYEnd = end;
+        yMapped = true;
+    }
+
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage){
         plotGraph(stage);
     }
 
+    private static void handleMapping(){
+        if(xMapped){
+            double prevV = graph.getNumberOfPoints();
+            double newV = Math.abs(mappedXEnd - mappedXStart);
+            xIncrement = newV/prevV;
+            xStart = mappedXStart;
+            xEnd = mappedXEnd;
+            xMapped = false;
+        }else{
+            xIncrement = graph.getInterval();
+            xStart = 0;
+            xEnd = graph.getNumberOfPoints()*xIncrement;
+        }
+
+        if(yMapped){
+            double newV = Math.abs(mappedYEnd - mappedYStart);
+            double v = (int)newV/10;
+            yStart = mappedYStart;
+            yEnd = mappedYEnd;
+            yIncrement = v;
+            yMapped = false;
+
+        }else {
+            yStart = graph.getMinValue();
+            yEnd = graph.getMaxValue();
+
+            if(yStart > 0)
+                yStart = 0;
+
+            int tens = 0;
+            for(int i = 0; i<String.valueOf(yEnd).length(); i++)
+                tens +=10;
+            while (yEnd % tens != 0){
+                yEnd++;
+            }
+            yIncrement = (yEnd - yStart)/11;
+        }
+    }
+
     private static void plotGraph(Stage stage){
-        if(!graph.isRendered())
+        if(!graph.isRendered()) 
             graph.render(LineGraph.Render.ALL);
+        handleMapping();
         //The holder
         AnchorPane pane = new AnchorPane();
         pane.setMaxSize(graph.getWidth(), graph.getHeight());
@@ -43,10 +108,11 @@ public class Plotter extends Application {
         //Add x-axis
         GridPane xAxis = new GridPane();
         int column = 0;
-        for(int i = 0; i<graph.getNumberOfPoints() * graph.getInterval(); i += graph.getInterval()){
+        for(double i = xStart; i < xEnd; i += xIncrement){
             StackPane st = new StackPane();
             st.setPrefSize(graph.getInterval(), 10);
-            Label label = new Label(String.valueOf(i));
+            NumberFormat formatter = new DecimalFormat("#.##");
+            Label label = new Label(formatter.format(i));
             st.getChildren().add(label);
             StackPane.setAlignment(label, Pos.CENTER);
             xAxis.add(st,column,1);
@@ -60,19 +126,8 @@ public class Plotter extends Application {
 
         //Add y-axis
         VBox yAxis = new VBox();
-        double min = graph.getMinValue();
-        double max = graph.getMaxValue();
-        //Calculate show it starts at 0
-        if(min > 0)
-            min = 0;
-        int tens = 0;
-        for(int i = 0; i<String.valueOf(max).length(); i++)
-            tens +=10;
-        while (max % tens != 0){
-            max++;
-        }
         //Populate y-axis
-        for(double i = max ; i >= min; i-=50){
+        for(double i = yEnd ; i >= yStart; i-=yIncrement){
             StackPane st = new StackPane();
             st.setPrefSize(40, 20);
             Label label = new Label(String.valueOf((int)i));

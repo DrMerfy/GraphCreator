@@ -108,10 +108,11 @@ public class LineGraph extends Pane {
         maxValue = points.get(0).getY();
         minValue = points.get(0).getY();
         for(Point2D p : points){
-            if(maxValue < p.getY())
-                maxValue = p.getY();
-            if(minValue > p.getY())
-                minValue = p.getY();
+            Point2D translated = translate(p);
+            if(maxValue < translated.getY())
+                maxValue = translated.getY();
+            if(minValue > translated.getY())
+                minValue = translated.getY();
         }
     }
 

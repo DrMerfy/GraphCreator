@@ -82,6 +82,7 @@ public class Plotter extends Application {
         }else {
             yStart = graph.getMinValue();
             yEnd = graph.getMaxValue();
+            System.out.println(graph.getMaxValue());
 
             if(yStart > 0)
                 yStart = 0;

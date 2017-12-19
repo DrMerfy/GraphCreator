@@ -30,6 +30,7 @@ public class LineGraph extends Pane {
 
     private double maxValue;
     private double minValue;
+    private double normalizer;
     private boolean isRendered;
 
     //Layers
@@ -44,6 +45,7 @@ public class LineGraph extends Pane {
 
 
     public LineGraph(double width, double height) {
+        this.setScaleY(-1);
         this.interval = 1;
         this.currentX = 0;
         this.setWidth(width);
@@ -73,12 +75,13 @@ public class LineGraph extends Pane {
     }
 
     public void render(Render value){
+        normalize();
         isRendered = true;
         switch (value){
             case GRAPH:
-                path = "M0,"+this.getHeight();
+                path = "M0,0";
                 renderGraph();
-                path += close? "L"+String.valueOf(this.currentX-interval)+","+this.getHeight(): "";
+                path += close? "L"+String.valueOf(this.currentX-interval)+",0": "";
                 graphPath.setContent(path);
                 this.getChildren().add(graphPath);
                 break;
@@ -93,27 +96,19 @@ public class LineGraph extends Pane {
                 this.getChildren().add(pointDots);
                 break;
             case ALL:
-                path = "M0,"+this.getHeight();
+                path = "M0,0";
                 pointLinesPath = "M"+points.get(0).getX() +","+points.get(0).getY();
                 renderGraph();
                 renderLines();
                 renderPoints();
 
-                path += close? "L"+String.valueOf(this.currentX-interval)+","+this.getHeight(): "";
+                path += close? "L"+String.valueOf(this.currentX-interval)+",0": "";
 
                 graphPath.setContent(path);
                 pointLines.setContent(pointLinesPath);
                 this.getChildren().addAll(graphPath, pointLines, pointDots);
         }
-        maxValue = points.get(0).getY();
-        minValue = points.get(0).getY();
-        for(Point2D p : points){
-            Point2D translated = translate(p);
-            if(maxValue < translated.getY())
-                maxValue = translated.getY();
-            if(minValue > translated.getY())
-                minValue = translated.getY();
-        }
+
     }
 
     public void setInterval(int interval) {
@@ -213,7 +208,7 @@ public class LineGraph extends Pane {
     private void renderLines(){
         for(int i = 0; i<points.size(); i++){
             pointLinesPath += "M"+points.get(i).getX() +","+points.get(i).getY();
-            pointLinesPath +="V"+this.getHeight();
+            pointLinesPath +="V0";
         }
     }
 
@@ -261,9 +256,27 @@ public class LineGraph extends Pane {
         return new double[]{length, angle};
     }
 
+    private void normalize(){
+        maxValue = points.get(0).getY();
+        minValue = points.get(0).getY();
+        for(Point2D p : points){
+            Point2D translated = translate(p);
+            if(maxValue < translated.getY())
+                maxValue = translated.getY();
+            if(minValue > translated.getY())
+                minValue = translated.getY();
+        }
+
+        normalizer = (this.getHeight()-50)/maxValue ;
+
+        for(int i =0; i< points.size(); i++){
+            points.set(i, new Point2D(points.get(i).getX(), points.get(i).getY()* normalizer));
+        }
+    }
+
     @NotNull
     private Point2D translate(Point2D point2D){
-        return new Point2D(point2D.getX(), this.getHeight()-point2D.getY()+1);
+        return new Point2D(point2D.getX(), point2D.getY());
     }
 
 }

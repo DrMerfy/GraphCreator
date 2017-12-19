@@ -32,6 +32,7 @@ public class LineGraph extends Pane {
     private double minValue;
     private double normalizer;
     private boolean isRendered;
+    private boolean isNormalized;
 
     //Layers
     private SVGPath graphPath;
@@ -54,6 +55,7 @@ public class LineGraph extends Pane {
         this.setMinHeight(height);
         this.points = new ArrayList<>();
         this.isRendered = false;
+        this.isNormalized = false;
 
         //Layers
         this.graphPath = new SVGPath();
@@ -75,7 +77,8 @@ public class LineGraph extends Pane {
     }
 
     public void render(Render value){
-        normalize();
+        if(!isNormalized)
+            normalize();
         isRendered = true;
         switch (value){
             case GRAPH:
@@ -175,6 +178,7 @@ public class LineGraph extends Pane {
     public void addPoint(Point2D point){
         point = translate(point);
         points.add(point);
+        isNormalized = false;
     }
 
     public void renderGraph(){
@@ -257,6 +261,7 @@ public class LineGraph extends Pane {
     }
 
     private void normalize(){
+        isNormalized = true;
         maxValue = points.get(0).getY();
         minValue = points.get(0).getY();
         for(Point2D p : points){

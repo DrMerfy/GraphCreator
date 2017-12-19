@@ -82,18 +82,18 @@ public class Plotter extends Application {
         }else {
             yStart = graph.getMinValue();
             yEnd = graph.getMaxValue();
-            System.out.println(graph.getMaxValue());
 
             if(yStart > 0)
                 yStart = 0;
 
-            int tens = 0;
-            for(int i = 0; i<String.valueOf(yEnd).length(); i++)
-                tens +=10;
+            int tens = 10;
+            for(int i = 0; i<String.valueOf(yEnd).length()-2; i++)
+                tens *=10;
+            tens /=100;
             while (yEnd % tens != 0){
                 yEnd++;
             }
-            yIncrement = (yEnd - yStart)/11;
+            yIncrement = (yEnd - yStart)/10;
         }
     }
 
@@ -128,8 +128,9 @@ public class Plotter extends Application {
         //Add y-axis
         VBox yAxis = new VBox();
         //Populate y-axis
-        for(double i = yEnd ; i >= yStart; i-=yIncrement){
+        for(double i = yStart ; i <= yEnd; i+=yIncrement){
             StackPane st = new StackPane();
+            st.setRotate(180);
             st.setPrefSize(40, 20);
             Label label = new Label(String.valueOf((int)i));
             st.getChildren().add(label);
@@ -137,10 +138,10 @@ public class Plotter extends Application {
             yAxis.getChildren().add(st);
             values++;
         }
-
         yAxis.setMaxWidth(40);
-        yAxis.setMaxHeight(0);
-        yAxis.setSpacing(graph.getMaxValue()/(values)-15);
+        yAxis.setMaxHeight(graph.getHeight());
+        yAxis.setSpacing((graph.getHeight()-50)/(values)-18);
+        yAxis.setRotate(180);
         pane.getChildren().add(yAxis);
         AnchorPane.setLeftAnchor(yAxis,0.0);
         AnchorPane.setBottomAnchor(yAxis,11.0);

@@ -52,6 +52,10 @@ public class Plotter extends Application {
         yMapped = true;
     }
 
+    public static void clearBuffer(){
+
+    }
+
     @Override
     public void start(Stage stage){
         plotGraph(stage);
@@ -85,13 +89,14 @@ public class Plotter extends Application {
 
             if(yStart > 0)
                 yStart = 0;
-
-            int tens = 10;
-            for(int i = 0; i<String.valueOf(yEnd).length()-2; i++)
-                tens *=10;
-            tens /=100;
-            while (yEnd % tens != 0){
-                yEnd++;
+            if(yEnd < 10) {
+                int tens = 10;
+                for (int i = 0; i < String.valueOf(yEnd).length() - 2; i++)
+                    tens *= 10;
+                tens /= 100;
+                while (yEnd % tens != 0) {
+                    yEnd++;
+                }
             }
             yIncrement = (yEnd - yStart)/10;
         }
@@ -101,6 +106,7 @@ public class Plotter extends Application {
         if(!graph.isRendered()) 
             graph.render(LineGraph.Render.ALL);
         handleMapping();
+        System.out.println("HI");
         //The holder
         AnchorPane pane = new AnchorPane();
         pane.setMaxSize(graph.getWidth(), graph.getHeight());

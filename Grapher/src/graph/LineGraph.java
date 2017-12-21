@@ -176,6 +176,10 @@ public class LineGraph extends Pane {
      * @param point using cartesian coordinates.
      */
     public void addPoint(Point2D point){
+        if(point.getX() == Double.NaN)
+            throw new RuntimeException("X value must be a number.");
+        if(point.getY() == Double.NaN)
+            throw new RuntimeException();
         point = translate(point);
         points.add(point);
         isNormalized = false;

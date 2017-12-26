@@ -9,6 +9,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import static java.lang.Math.*;
 import static javafx.scene.paint.Color.*;
@@ -33,6 +34,7 @@ public class LineGraph extends Pane {
     private double normalizer;
     private boolean isRendered;
     private boolean isNormalized;
+    private boolean isManualEntry;
 
     //Layers
     private SVGPath graphPath;
@@ -56,6 +58,7 @@ public class LineGraph extends Pane {
         this.points = new ArrayList<>();
         this.isRendered = false;
         this.isNormalized = false;
+        this.isManualEntry = false;
 
         //Layers
         this.graphPath = new SVGPath();
@@ -77,6 +80,10 @@ public class LineGraph extends Pane {
     }
 
     public void render(Render value){
+        if(isManualEntry){
+            points.sort((t1, t2) -> (int)(t1.getX() - t2.getX()));
+            this.setClose(false);
+        }
         if(!isNormalized)
             normalize();
         isRendered = true;
@@ -167,19 +174,25 @@ public class LineGraph extends Pane {
     }
 
     public void addValue(double value){
-        addPoint(new Point2D(currentX, value));
+        addPointLocal(new Point2D(currentX, value));
         currentX+= interval;
     }
 
     /**
      * Adds a point to the graph.
-     * @param point using cartesian coordinates.
+     * @param x The x cartesian coordinates of the point.
+     * @param y The y cartesian coordinates of the point.
      */
-    public void addPoint(Point2D point){
+    public void addPoint(double x, double y){
+        addPointLocal(new Point2D(x,y));
+        isManualEntry = true;
+    }
+
+    private void addPointLocal(Point2D point){
         if(point.getX() == Double.NaN)
             throw new RuntimeException("X value must be a number.");
         if(point.getY() == Double.NaN)
-            throw new RuntimeException();
+            throw new RuntimeException("Y value must be a number.");
         point = translate(point);
         points.add(point);
         isNormalized = false;

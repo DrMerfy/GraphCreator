@@ -1,15 +1,12 @@
 package graph;
 
-import com.sun.istack.internal.Nullable;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineJoin;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import static java.lang.Math.*;
 import static javafx.scene.paint.Color.*;
@@ -193,7 +190,6 @@ public class LineGraph extends Pane {
             throw new RuntimeException("X value must be a number.");
         if(point.getY() == Double.NaN)
             throw new RuntimeException("Y value must be a number.");
-        point = translate(point);
         points.add(point);
         isNormalized = false;
     }
@@ -246,8 +242,7 @@ public class LineGraph extends Pane {
         }
     }
 
-    @NotNull
-    private Point2D getControlPoint(@Nullable Point2D prevPoint, @Nullable Point2D point, @Nullable Point2D nextPoint, boolean reverse){
+    private Point2D getControlPoint(Point2D prevPoint, Point2D point, Point2D nextPoint, boolean reverse){
         if(point == null)
             point = prevPoint;
         if(prevPoint == null)
@@ -266,7 +261,6 @@ public class LineGraph extends Pane {
         return new Point2D(x,y);
     }
 
-    @NotNull
     private double[] line(Point2D prevPoint, Point2D point){
         double lengthX = point.getX() - prevPoint.getX();
         double lengthY = point.getY() - prevPoint.getY();
@@ -282,11 +276,10 @@ public class LineGraph extends Pane {
         maxValue = points.get(0).getY();
         minValue = points.get(0).getY();
         for(Point2D p : points){
-            Point2D translated = translate(p);
-            if(maxValue < translated.getY())
-                maxValue = translated.getY();
-            if(minValue > translated.getY())
-                minValue = translated.getY();
+            if(maxValue < p.getY())
+                maxValue = p.getY();
+            if(minValue > p.getY())
+                minValue = p.getY();
         }
 
         normalizer = (this.getHeight()-50)/maxValue ;
@@ -294,11 +287,6 @@ public class LineGraph extends Pane {
         for(int i =0; i< points.size(); i++){
             points.set(i, new Point2D(points.get(i).getX(), points.get(i).getY()* normalizer));
         }
-    }
-
-    @NotNull
-    private Point2D translate(Point2D point2D){
-        return new Point2D(point2D.getX(), point2D.getY());
     }
 
 }

@@ -100,7 +100,7 @@ public class Plotter extends Application {
 
             if(yStart > 0)
                 yStart = 0;
-            if(yEnd < 10) {
+            if(yEnd > 10) {
                 int tens = 10;
                 for (int i = 0; i < String.valueOf(yEnd).length() - 2; i++)
                     tens *= 10;

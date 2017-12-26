@@ -12,7 +12,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 public class Plotter extends Application {
-    private static LineGraph graph;
+    private static LineGraph[] graphs;
+    private static boolean plotted = false;
 
     //Axis related fields
     private static boolean xMapped = false;
@@ -31,12 +32,18 @@ public class Plotter extends Application {
 
     private static double values =0;
 
-    public static void plot(LineGraph graph){
-        Plotter.graph = graph;
+    public static void plot(LineGraph... graphs){
+        if(plotted)
+            throw new RuntimeException("Cannot call plot 2 times. Instead put all graphs in one call.");
+        plotted = true;
+
+        Plotter.graphs = graphs;
         try{
             Application.launch();
-        }catch (IllegalStateException e){
-            plotGraph(new Stage());
+        }catch (IllegalStateException e) {
+            for (LineGraph graph : graphs) {
+                plotGraph(new Stage(), graph);
+            }
         }
     }
 
@@ -52,16 +59,20 @@ public class Plotter extends Application {
         yMapped = true;
     }
 
-    public static void clearBuffer(){
-
+    public static void clear(){
+        xMapped = false;
+        yMapped = false;
+        values = 0;
     }
 
     @Override
     public void start(Stage stage){
-        plotGraph(stage);
+        for (LineGraph graph : graphs) {
+            plotGraph(new Stage(), graph);
+        }
     }
 
-    private static void handleMapping(){
+    private static void handleMapping(LineGraph graph){
         if(xMapped){
             double prevV = graph.getNumberOfPoints();
             double newV = Math.abs(mappedXEnd - mappedXStart);
@@ -77,7 +88,7 @@ public class Plotter extends Application {
 
         if(yMapped){
             double newV = Math.abs(mappedYEnd - mappedYStart);
-            double v = (int)newV/10;
+            double v = newV/10;
             yStart = mappedYStart;
             yEnd = mappedYEnd;
             yIncrement = v;
@@ -102,11 +113,12 @@ public class Plotter extends Application {
         }
     }
 
-    private static void plotGraph(Stage stage){
+    private static void plotGraph(Stage stage, LineGraph graph){
+        clear();
+
         if(!graph.isRendered()) 
             graph.render(LineGraph.Render.ALL);
-        handleMapping();
-        System.out.println("HI");
+        handleMapping(graph);
         //The holder
         AnchorPane pane = new AnchorPane();
         pane.setMaxSize(graph.getWidth(), graph.getHeight());
@@ -138,7 +150,8 @@ public class Plotter extends Application {
             StackPane st = new StackPane();
             st.setRotate(180);
             st.setPrefSize(40, 20);
-            Label label = new Label(String.valueOf((int)i));
+            NumberFormat formatter = new DecimalFormat("#.##");
+            Label label = new Label(formatter.format(i));
             st.getChildren().add(label);
             StackPane.setAlignment(label, Pos.CENTER);
             yAxis.getChildren().add(st);

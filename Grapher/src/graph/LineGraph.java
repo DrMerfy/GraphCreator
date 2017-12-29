@@ -28,7 +28,7 @@ public class LineGraph extends Pane {
 
     private double maxValue;
     private double minValue;
-    private double normalizer;
+    private double normalizerY;
     private boolean isRendered;
     private boolean isNormalized;
     private boolean isManualEntry;
@@ -77,18 +77,21 @@ public class LineGraph extends Pane {
     }
 
     public void render(Render value){
+        //Sort points based on x-axis
         if(isManualEntry){
             points.sort((t1, t2) -> (int)(t1.getX() - t2.getX()));
             this.setClose(false);
         }
+        //Normalize y-axis values
         if(!isNormalized)
             normalize();
+
         isRendered = true;
         switch (value){
             case GRAPH:
                 path = "M0,0";
                 renderGraph();
-                path += close? "L"+String.valueOf(this.currentX-interval)+",0": "";
+                path += close? "L"+String.valueOf(this.currentX)+",0": "";
                 graphPath.setContent(path);
                 this.getChildren().add(graphPath);
                 break;
@@ -109,7 +112,7 @@ public class LineGraph extends Pane {
                 renderLines();
                 renderPoints();
 
-                path += close? "L"+String.valueOf(this.currentX-interval)+",0": "";
+                path += close? "L"+String.valueOf(this.currentX)+",0": "";
 
                 graphPath.setContent(path);
                 pointLines.setContent(pointLinesPath);
@@ -118,6 +121,7 @@ public class LineGraph extends Pane {
 
     }
 
+    //---------------------GETTERS SETTERS---------------------------//
     public void setInterval(int interval) {
         this.interval = interval;
     }
@@ -170,6 +174,7 @@ public class LineGraph extends Pane {
         return isRendered;
     }
 
+    //----------------POINT ADDERS------------------------
     public void addValue(double value){
         addPointLocal(new Point2D(currentX, value));
         currentX+= interval;
@@ -282,10 +287,21 @@ public class LineGraph extends Pane {
                 minValue = p.getY();
         }
 
-        normalizer = (this.getHeight()-50)/maxValue ;
+        //Find max and min for x-axis
+        double maxValueX = points.get(0).getX();
+        double minValueX = points.get(0).getX();
+        for(Point2D p : points){
+            if(maxValueX < p.getX())
+                maxValueX = p.getX();
+            if(minValueX > p.getX())
+                minValueX = p.getX();
+        }
+
+        double normalizerX = (this.getWidth())/maxValueX;
+        normalizerY = (0.9*this.getHeight())/maxValue ;
 
         for(int i =0; i< points.size(); i++){
-            points.set(i, new Point2D(points.get(i).getX(), points.get(i).getY()* normalizer));
+            points.set(i, new Point2D(points.get(i).getX()*normalizerX, points.get(i).getY()* normalizerY));
         }
     }
 

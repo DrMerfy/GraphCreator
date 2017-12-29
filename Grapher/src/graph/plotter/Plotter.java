@@ -3,7 +3,9 @@ package graph.plotter;
 import graph.LineGraph;
 import javafx.application.Application;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -34,7 +36,7 @@ public class Plotter extends Application {
 
     public static void plot(LineGraph... graphs){
         if(plotted)
-            throw new RuntimeException("Cannot call plot 2 times. Instead put all graphs in one call.");
+            throw new RuntimeException("Plot can be called only once. Instead put all graphs in one call.");
         plotted = true;
 
         Plotter.graphs = graphs;
@@ -114,8 +116,6 @@ public class Plotter extends Application {
     }
 
     private static void plotGraph(Stage stage, LineGraph graph){
-        clear();
-
         if(!graph.isRendered()) 
             graph.render(LineGraph.Render.ALL);
         handleMapping(graph);
@@ -125,54 +125,32 @@ public class Plotter extends Application {
         pane.setPrefWidth(graph.getWidth());
 
         //Add x-axis
-        GridPane xAxis = new GridPane();
-        int column = 0;
-        for(double i = xStart; i < xEnd; i += xIncrement){
-            StackPane st = new StackPane();
-            st.setPrefSize(graph.getInterval(), 10);
-            NumberFormat formatter = new DecimalFormat("#.##");
-            Label label = new Label(formatter.format(i));
-            st.getChildren().add(label);
-            StackPane.setAlignment(label, Pos.CENTER);
-            xAxis.add(st,column,1);
-            column++;
-        }
-        xAxis.setMaxHeight(10);
+        NumberAxis xAxis = new NumberAxis(xStart,xEnd,xIncrement);
+
         pane.getChildren().add(xAxis);
-        AnchorPane.setLeftAnchor(xAxis,15.0);
+        AnchorPane.setLeftAnchor(xAxis,40.0);
+        AnchorPane.setRightAnchor(xAxis,5.0);
         AnchorPane.setBottomAnchor(xAxis,0.0);
 
-
         //Add y-axis
-        VBox yAxis = new VBox();
-        //Populate y-axis
-        for(double i = yStart ; i <= yEnd; i+=yIncrement){
-            StackPane st = new StackPane();
-            st.setRotate(180);
-            st.setPrefSize(40, 20);
-            NumberFormat formatter = new DecimalFormat("#.##");
-            Label label = new Label(formatter.format(i));
-            st.getChildren().add(label);
-            StackPane.setAlignment(label, Pos.CENTER);
-            yAxis.getChildren().add(st);
-            values++;
-        }
-        yAxis.setMaxWidth(40);
-        yAxis.setMaxHeight(graph.getHeight());
-        yAxis.setSpacing((graph.getHeight()-50)/(values)-18);
-        yAxis.setRotate(180);
+        NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
+        yAxis.setSide(Side.LEFT);
+
         pane.getChildren().add(yAxis);
         AnchorPane.setLeftAnchor(yAxis,0.0);
-        AnchorPane.setBottomAnchor(yAxis,11.0);
+        AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
+        AnchorPane.setBottomAnchor(yAxis,26.0);
 
         //Add the graph
         pane.getChildren().add(graph);
         AnchorPane.setLeftAnchor(graph, 40.0);
-        AnchorPane.setBottomAnchor(graph, 15.0);
+        AnchorPane.setBottomAnchor(graph, 30.0);
         Scene scene = new Scene(pane);
 
         stage.setScene(scene);
         stage.setTitle("Graph");
+        stage.setResizable(false);
         stage.show();
+        clear();
     }
 }

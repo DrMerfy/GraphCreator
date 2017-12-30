@@ -7,6 +7,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineJoin;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static java.lang.Math.*;
 import static javafx.scene.paint.Color.*;
@@ -29,6 +30,7 @@ public class LineGraph extends Pane {
     private double maxValue;
     private double minValue;
     private double normalizerY;
+    private double normalizerX;
     private boolean isRendered;
     private boolean isNormalized;
     private boolean isManualEntry;
@@ -56,6 +58,9 @@ public class LineGraph extends Pane {
         this.isRendered = false;
         this.isNormalized = false;
         this.isManualEntry = false;
+
+        //Unique identification
+        this.setId(UUID.randomUUID().toString());
 
         //Layers
         this.graphPath = new SVGPath();
@@ -148,6 +153,10 @@ public class LineGraph extends Pane {
 
     public double getMinValue() {
         return minValue;
+    }
+
+    public double getRealMaxHeight() {
+        return this.maxValue*normalizerY;
     }
 
     public boolean isClose() {
@@ -297,11 +306,11 @@ public class LineGraph extends Pane {
                 minValueX = p.getX();
         }
 
-        double normalizerX = (this.getWidth())/maxValueX;
+        normalizerX = (this.getWidth())/maxValueX;
         normalizerY = (0.9*this.getHeight())/maxValue ;
 
         for(int i =0; i< points.size(); i++){
-            points.set(i, new Point2D(points.get(i).getX()*normalizerX, points.get(i).getY()* normalizerY));
+            points.set(i, new Point2D(points.get(i).getX()* normalizerX, points.get(i).getY()* normalizerY));
         }
     }
 

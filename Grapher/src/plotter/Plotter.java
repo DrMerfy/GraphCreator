@@ -1,36 +1,34 @@
-package graph.plotter;
+package plotter;
 
 import graph.LineGraph;
 import javafx.application.Application;
-import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Plotter extends Application {
     private static LineGraph[] graphs;
     private static boolean plotted = false;
 
     //Axis related fields
-    private static boolean xMapped = false;
+    //Maps the graph id with the mapped values of the x axis.
+    private static Map<String, AxisMap> xMapped = new HashMap<>();
+
     private static double xStart;
     private static double xEnd;
     private static double xIncrement;
-    private static double mappedXStart;
-    private static double mappedXEnd;
 
-    private static boolean yMapped = false;
+    //Maps the graph id with the mapped values of the y axis.
+    private static Map<String, AxisMap> yMapped = new HashMap<>();
+
     private static double yStart;
     private static double yEnd;
     private static double yIncrement;
-    private static double mappedYStart;
-    private static double mappedYEnd;
 
     private static double values =0;
 
@@ -49,21 +47,17 @@ public class Plotter extends Application {
         }
     }
 
-    public static void mapXAxis(double start, double end){
-        mappedXStart = start;
-        mappedXEnd = end;
-        xMapped = true;
+    public static void mapXAxis(double start, double end, LineGraph graph){
+        AxisMap map = new AxisMap(start,end);
+        xMapped.put(graph.getId(),map);
     }
 
-    public static void mapYAxis(double start, double end){
-        mappedYStart = start;
-        mappedYEnd = end;
-        yMapped = true;
+    public static void mapYAxis(double start, double end, LineGraph graph){
+        AxisMap map = new AxisMap(start,end);
+        yMapped.put(graph.getId(),map);
     }
 
     public static void clear(){
-        xMapped = false;
-        yMapped = false;
         values = 0;
     }
 
@@ -75,26 +69,28 @@ public class Plotter extends Application {
     }
 
     private static void handleMapping(LineGraph graph){
-        if(xMapped){
+        if(xMapped.containsKey(graph.getId())){
+            AxisMap mapped = xMapped.get(graph.getId());
             double prevV = graph.getNumberOfPoints();
-            double newV = Math.abs(mappedXEnd - mappedXStart);
+            double newV = Math.abs(mapped.end - mapped.start);
             xIncrement = newV/prevV;
-            xStart = mappedXStart;
-            xEnd = mappedXEnd;
-            xMapped = false;
+            xStart = mapped.start;
+            xEnd = mapped.end;
+            xMapped.remove(graph.getId());
         }else{
             xIncrement = graph.getInterval();
             xStart = 0;
             xEnd = graph.getNumberOfPoints()*xIncrement;
         }
 
-        if(yMapped){
-            double newV = Math.abs(mappedYEnd - mappedYStart);
+        if(yMapped.containsKey(graph.getId())){
+            AxisMap mapped = yMapped.get(graph.getId());
+            double newV = Math.abs(mapped.end - mapped.start);
             double v = newV/10;
-            yStart = mappedYStart;
-            yEnd = mappedYEnd;
+            yStart = mapped.start;
+            yEnd = mapped.end;
             yIncrement = v;
-            yMapped = false;
+            yMapped.remove(graph.getId());
 
         }else {
             yStart = graph.getMinValue();

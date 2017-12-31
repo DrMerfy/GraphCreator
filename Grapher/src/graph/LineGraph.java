@@ -1,7 +1,10 @@
 package graph;
 
+import graph.theme.Theme;
+import graph.theme.Themes;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineJoin;
@@ -12,7 +15,7 @@ import java.util.UUID;
 import static java.lang.Math.*;
 import static javafx.scene.paint.Color.*;
 
-public class LineGraph extends Pane {
+public class LineGraph extends Region {
     public enum Render {
         ALL,
         GRAPH,
@@ -45,11 +48,21 @@ public class LineGraph extends Pane {
     private Circle circleStyle;
     private boolean close;
 
+    public LineGraph(double width, double height, Theme theme){
+        initialize(width, height);
+        Themes.applyTheme(theme, this);
+    }
 
     public LineGraph(double width, double height) {
+        initialize(width,height);
+    }
+
+    private void initialize(double width, double height){
         this.setScaleY(-1);
         this.interval = 1;
         this.currentX = 0;
+        this.setMaxWidth(width);
+        this.setMaxHeight(height);
         this.setWidth(width);
         this.setHeight(height);
         this.setMinWidth(width);
@@ -87,16 +100,16 @@ public class LineGraph extends Pane {
             points.sort((t1, t2) -> (int)(t1.getX() - t2.getX()));
             this.setClose(false);
         }
-        //Normalize y-axis values
+        //Normalize x and y-axis values
         if(!isNormalized)
             normalize();
 
         isRendered = true;
         switch (value){
             case GRAPH:
-                path = "M0,0";
+                path = "M"+points.get(0).getX()+","+points.get(0).getY();
                 renderGraph();
-                path += close? "L"+String.valueOf(this.currentX)+",0": "";
+                path += close? "L"+String.valueOf(this.getWidth())+",0": "";
                 graphPath.setContent(path);
                 this.getChildren().add(graphPath);
                 break;
@@ -111,13 +124,13 @@ public class LineGraph extends Pane {
                 this.getChildren().add(pointDots);
                 break;
             case ALL:
-                path = "M0,0";
+                path = "M"+points.get(0).getX() +","+points.get(0).getY();
                 pointLinesPath = "M"+points.get(0).getX() +","+points.get(0).getY();
                 renderGraph();
                 renderLines();
                 renderPoints();
 
-                path += close? "L"+String.valueOf(this.currentX)+",0": "";
+                path += close? "L"+String.valueOf(this.getWidth())+",0": "";
 
                 graphPath.setContent(path);
                 pointLines.setContent(pointLinesPath);
@@ -126,7 +139,9 @@ public class LineGraph extends Pane {
 
     }
 
-    //---------------------GETTERS SETTERS---------------------------//
+    ///////////////////////////////////////////////////////////////////////////
+    // GETTERS SETTERS
+    ///////////////////////////////////////////////////////////////////////////
     public void setInterval(int interval) {
         this.interval = interval;
     }
@@ -183,7 +198,9 @@ public class LineGraph extends Pane {
         return isRendered;
     }
 
-    //----------------POINT ADDERS------------------------
+    ///////////////////////////////////////////////////////////////////////////
+    // POINT ADDERS
+    ///////////////////////////////////////////////////////////////////////////
     public void addValue(double value){
         addPointLocal(new Point2D(currentX, value));
         currentX+= interval;
@@ -208,6 +225,9 @@ public class LineGraph extends Pane {
         isNormalized = false;
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // RENDERERS
+    ///////////////////////////////////////////////////////////////////////////
     public void renderGraph(){
         //Calculate smooth curve
         //see: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
@@ -256,6 +276,9 @@ public class LineGraph extends Pane {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // SMOOTHERS
+    ///////////////////////////////////////////////////////////////////////////
     private Point2D getControlPoint(Point2D prevPoint, Point2D point, Point2D nextPoint, boolean reverse){
         if(point == null)
             point = prevPoint;
@@ -285,6 +308,9 @@ public class LineGraph extends Pane {
         return new double[]{length, angle};
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // OTHERS
+    ///////////////////////////////////////////////////////////////////////////
     private void normalize(){
         isNormalized = true;
         maxValue = points.get(0).getY();

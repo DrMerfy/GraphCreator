@@ -14,6 +14,10 @@ import java.util.Map;
 public class Plotter extends Application {
     private static LineGraph[] graphs;
     private static boolean plotted = false;
+    private static boolean sameWindow = false;
+
+    //Maps the graph id with the stage title.
+    private static Map<String, String> titles = new HashMap<>();
 
     //Axis related fields
     //Maps the graph id with the mapped values of the x axis.
@@ -30,75 +34,102 @@ public class Plotter extends Application {
     private static double yEnd;
     private static double yIncrement;
 
-    private static double values =0;
+    private static double values = 0;
 
-    public static void plot(LineGraph... graphs){
-        if(plotted)
+    public static void plot(Boolean sameWindow, LineGraph... graphs) {
+        Plotter.sameWindow = sameWindow;
+        plot(graphs);
+    }
+
+    public static void plot(LineGraph... graphs) {
+        if (plotted)
             throw new RuntimeException("Plot can be called only once. Instead put all graphs in one call.");
         plotted = true;
 
         Plotter.graphs = graphs;
-        try{
+        try {
             Application.launch();
-        }catch (IllegalStateException e) {
-            for (LineGraph graph : graphs) {
-                plotGraph(new Stage(), graph);
-            }
+        } catch (IllegalStateException e) {
+            showGraphs();
         }
     }
 
-    public static void mapXAxis(double start, double end, LineGraph graph){
-        AxisMap map = new AxisMap(start,end);
-        xMapped.put(graph.getId(),map);
+    public static void setTitle(String title, LineGraph graph){
+        titles.put(graph.getId(), title);
     }
 
-    public static void mapYAxis(double start, double end, LineGraph graph){
-        AxisMap map = new AxisMap(start,end);
-        yMapped.put(graph.getId(),map);
+    public static void mapXAxis(double start, double end, LineGraph graph) {
+        AxisMap map = new AxisMap(start, end);
+        xMapped.put(graph.getId(), map);
     }
 
-    public static void clear(){
+    public static void mapYAxis(double start, double end, LineGraph graph) {
+        AxisMap map = new AxisMap(start, end);
+        yMapped.put(graph.getId(), map);
+    }
+
+    public static void clear() {
         values = 0;
     }
 
     @Override
-    public void start(Stage stage){
-        for (LineGraph graph : graphs) {
-            plotGraph(new Stage(), graph);
+    public void start(Stage stage) {
+        showGraphs();
+    }
+
+    private static void showGraphs() {
+        Stage oneStage = new Stage();
+        if (!sameWindow) {
+            for (LineGraph graph : graphs) {
+                oneStage = new Stage();
+                oneStage.setTitle(titles.get(graph.getId()));
+                oneStage.setScene(new Scene(plotGraph(null, graph)));
+                oneStage.setResizable(false);
+                oneStage.show();
+            }
+        } else {
+            Pane pane = new Pane();
+            for (LineGraph graph : graphs) {
+                plotGraph(pane, graph);
+                oneStage.setTitle(titles.get(graph.getId()));
+            }
+            oneStage.setScene(new Scene(pane));
+            oneStage.setResizable(false);
+            oneStage.show();
         }
     }
 
-    private static void handleMapping(LineGraph graph){
-        if(xMapped.containsKey(graph.getId())){
+    private static void handleMapping(LineGraph graph) {
+        if (xMapped.containsKey(graph.getId())) {
             AxisMap mapped = xMapped.get(graph.getId());
             double prevV = graph.getNumberOfPoints();
             double newV = Math.abs(mapped.end - mapped.start);
-            xIncrement = newV/prevV;
+            xIncrement = newV / prevV;
             xStart = mapped.start;
             xEnd = mapped.end;
             xMapped.remove(graph.getId());
-        }else{
+        } else {
             xIncrement = graph.getInterval();
             xStart = 0;
-            xEnd = graph.getNumberOfPoints()*xIncrement;
+            xEnd = graph.getNumberOfPoints() * xIncrement;
         }
 
-        if(yMapped.containsKey(graph.getId())){
+        if (yMapped.containsKey(graph.getId())) {
             AxisMap mapped = yMapped.get(graph.getId());
             double newV = Math.abs(mapped.end - mapped.start);
-            double v = newV/10;
+            double v = newV / 10;
             yStart = mapped.start;
             yEnd = mapped.end;
             yIncrement = v;
             yMapped.remove(graph.getId());
 
-        }else {
+        } else {
             yStart = graph.getMinValue();
             yEnd = graph.getMaxValue();
 
-            if(yStart > 0)
+            if (yStart > 0)
                 yStart = 0;
-            if(yEnd > 10) {
+            if (yEnd > 10) {
                 int tens = 10;
                 for (int i = 0; i < String.valueOf(yEnd).length() - 2; i++)
                     tens *= 10;
@@ -107,12 +138,12 @@ public class Plotter extends Application {
                     yEnd++;
                 }
             }
-            yIncrement = (yEnd - yStart)/10;
+            yIncrement = (yEnd - yStart) / 10;
         }
     }
 
-    private static void plotGraph(Stage stage, LineGraph graph){
-        if(!graph.isRendered()) 
+    private static Pane plotGraph(Pane givenPane, LineGraph graph) {
+        if (!graph.isRendered())
             graph.render(LineGraph.Render.ALL);
         handleMapping(graph);
         //The holder
@@ -121,32 +152,36 @@ public class Plotter extends Application {
         pane.setPrefWidth(graph.getWidth());
 
         //Add x-axis
-        NumberAxis xAxis = new NumberAxis(xStart,xEnd,xIncrement);
+        NumberAxis xAxis = new NumberAxis(xStart, xEnd, xIncrement);
 
         pane.getChildren().add(xAxis);
-        AnchorPane.setLeftAnchor(xAxis,40.0);
-        AnchorPane.setRightAnchor(xAxis,5.0);
-        AnchorPane.setBottomAnchor(xAxis,0.0);
+        AnchorPane.setLeftAnchor(xAxis, 40.0);
+        AnchorPane.setRightAnchor(xAxis, 5.0);
+        AnchorPane.setBottomAnchor(xAxis, 0.0);
 
         //Add y-axis
         NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
         yAxis.setSide(Side.LEFT);
 
         pane.getChildren().add(yAxis);
-        AnchorPane.setLeftAnchor(yAxis,0.0);
+        AnchorPane.setLeftAnchor(yAxis, 0.0);
         AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
-        AnchorPane.setBottomAnchor(yAxis,26.0);
+        AnchorPane.setBottomAnchor(yAxis, 26.0);
 
         //Add the graph
         pane.getChildren().add(graph);
         AnchorPane.setLeftAnchor(graph, 40.0);
         AnchorPane.setBottomAnchor(graph, 30.0);
-        Scene scene = new Scene(pane);
+        
+        Pane out;
+        if (givenPane == null)
+            out = new Pane();
+        else
+            out = givenPane;
 
-        stage.setScene(scene);
-        stage.setTitle("Graph");
-        stage.setResizable(false);
-        stage.show();
+        out.getChildren().add(pane);
+
         clear();
+        return out;
     }
 }

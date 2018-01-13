@@ -18,6 +18,8 @@ public class Plotter extends Application {
 
     //Maps the graph id with the stage title.
     private static Map<String, String> titles = new HashMap<>();
+    //Maps the graph id with the axises labels.
+    private static Map<String,String[]> labels = new HashMap<>();
 
     //Axis related fields
     //Maps the graph id with the mapped values of the x axis.
@@ -47,6 +49,7 @@ public class Plotter extends Application {
         plotted = true;
 
         Plotter.graphs = graphs;
+
         try {
             Application.launch();
         } catch (IllegalStateException e) {
@@ -54,8 +57,12 @@ public class Plotter extends Application {
         }
     }
 
-    public static void setTitle(String title, LineGraph graph){
+    public static void setTitle(String title, LineGraph graph) {
         titles.put(graph.getId(), title);
+    }
+
+    public static void setAxisLabel(String x, String y, LineGraph graph) {
+        labels.put(graph.getId(),new String[]{x,y});
     }
 
     public static void mapXAxis(double start, double end, LineGraph graph) {
@@ -142,42 +149,49 @@ public class Plotter extends Application {
         }
     }
 
-    private static Pane plotGraph(Pane givenPane, LineGraph graph) {
+    private static Pane plotGraph(Pane root, LineGraph graph) {
         if (!graph.isRendered())
             graph.render(LineGraph.Render.ALL);
         handleMapping(graph);
         //The holder
         AnchorPane pane = new AnchorPane();
-        pane.setMaxSize(graph.getWidth(), graph.getHeight());
-        pane.setPrefWidth(graph.getWidth());
-
-        //Add x-axis
-        NumberAxis xAxis = new NumberAxis(xStart, xEnd, xIncrement);
-
-        pane.getChildren().add(xAxis);
-        AnchorPane.setLeftAnchor(xAxis, 40.0);
-        AnchorPane.setRightAnchor(xAxis, 5.0);
-        AnchorPane.setBottomAnchor(xAxis, 0.0);
-
-        //Add y-axis
-        NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
-        yAxis.setSide(Side.LEFT);
-
-        pane.getChildren().add(yAxis);
-        AnchorPane.setLeftAnchor(yAxis, 0.0);
-        AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
-        AnchorPane.setBottomAnchor(yAxis, 26.0);
+        //pane.setMaxSize(graph.getWidth(), graph.getHeight());
+        //pane.setPrefWidth(graph.getWidth());
 
         //Add the graph
         pane.getChildren().add(graph);
-        AnchorPane.setLeftAnchor(graph, 40.0);
-        AnchorPane.setBottomAnchor(graph, 30.0);
-        
+
+        //Creates axises
+        NumberAxis xAxis = new NumberAxis(xStart, xEnd, xIncrement);
+        NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
+        yAxis.setSide(Side.LEFT);
+
+        pane.getChildren().add(xAxis);
+        pane.getChildren().add(yAxis);
+        //Add x-axis
+        if(labels.containsKey(graph.getId()))
+            xAxis.setLabel(labels.get(graph.getId())[0]);
+        AnchorPane.setLeftAnchor(xAxis, 68.0);
+        AnchorPane.setRightAnchor(xAxis, 5.0);
+        AnchorPane.setBottomAnchor(xAxis, 0.0);
+        AnchorPane.setLeftAnchor(graph,68.0);
+
+        //Add y-axis
+        if(labels.containsKey(graph.getId()))
+            yAxis.setLabel(labels.get(graph.getId())[1]);
+        AnchorPane.setLeftAnchor(yAxis, 0.0);
+        AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
+        //Setting margin of y-axis and graph related to the x-axis height
+        xAxis.heightProperty().addListener((observable,oldV,newV) -> {
+            AnchorPane.setBottomAnchor(yAxis,newV.doubleValue());
+            AnchorPane.setBottomAnchor(graph, newV.doubleValue());
+        });
+
         Pane out;
-        if (givenPane == null)
+        if (root == null)
             out = new Pane();
         else
-            out = givenPane;
+            out = root;
 
         out.getChildren().add(pane);
 

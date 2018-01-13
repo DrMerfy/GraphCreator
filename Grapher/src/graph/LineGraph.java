@@ -5,6 +5,7 @@ import graph.theme.Themes;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineJoin;
@@ -142,6 +143,11 @@ public class LineGraph extends Region {
     ///////////////////////////////////////////////////////////////////////////
     // GETTERS SETTERS
     ///////////////////////////////////////////////////////////////////////////
+    public void setColor(Paint value){
+        graphPath.setStroke(value);
+        circleStyle.setFill(value);
+    }
+
     public void setInterval(int interval) {
         this.interval = interval;
     }

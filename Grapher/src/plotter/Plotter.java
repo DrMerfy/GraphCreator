@@ -133,18 +133,6 @@ public class Plotter extends Application {
         } else {
             yStart = graph.getMinValue();
             yEnd = graph.getMaxValue();
-
-            if (yStart > 0)
-                yStart = 0;
-            if (yEnd > 10) {
-                int tens = 10;
-                for (int i = 0; i < String.valueOf(yEnd).length() - 2; i++)
-                    tens *= 10;
-                tens /= 100;
-                while (yEnd % tens != 0) {
-                    yEnd++;
-                }
-            }
             yIncrement = (yEnd - yStart) / 10;
         }
     }

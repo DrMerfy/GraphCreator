@@ -2,6 +2,7 @@ package plotter;
 
 import graph.LineGraph;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
@@ -11,9 +12,13 @@ import javafx.stage.Stage;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A class that can be used to plot a graph.
+ */
 public class Plotter extends Application {
     private static LineGraph[] graphs;
     private static boolean plotted = false;
+    private static boolean axisPlotted = false;
     private static boolean sameWindow = false;
 
     //Maps the graph id with the stage title.
@@ -44,8 +49,8 @@ public class Plotter extends Application {
     }
 
     public static void plot(LineGraph... graphs) {
-        if (plotted)
-            throw new RuntimeException("Plot can be called only once. Instead put all graphs in one call.");
+        //if (plotted)
+          //  throw new RuntimeException("Plot can be called only once. Instead put all graphs in one call.");
         plotted = true;
 
         Plotter.graphs = graphs;
@@ -143,38 +148,39 @@ public class Plotter extends Application {
         handleMapping(graph);
         //The holder
         AnchorPane pane = new AnchorPane();
-        //pane.setMaxSize(graph.getWidth(), graph.getHeight());
-        //pane.setPrefWidth(graph.getWidth());
 
         //Add the graph
         pane.getChildren().add(graph);
+        AnchorPane.setLeftAnchor(graph, 68.0);
 
         //Creates axises
-        NumberAxis xAxis = new NumberAxis(xStart, xEnd, xIncrement);
-        NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
-        yAxis.setSide(Side.LEFT);
 
-        pane.getChildren().add(xAxis);
-        pane.getChildren().add(yAxis);
-        //Add x-axis
-        if(labels.containsKey(graph.getId()))
-            xAxis.setLabel(labels.get(graph.getId())[0]);
-        AnchorPane.setLeftAnchor(xAxis, 68.0);
-        AnchorPane.setRightAnchor(xAxis, 5.0);
-        AnchorPane.setBottomAnchor(xAxis, 0.0);
-        AnchorPane.setLeftAnchor(graph,68.0);
+        if(sameWindow && !axisPlotted) {
+            NumberAxis xAxis = new NumberAxis(xStart, xEnd, xIncrement);
+            NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
+            yAxis.setSide(Side.LEFT);
 
-        //Add y-axis
-        if(labels.containsKey(graph.getId()))
-            yAxis.setLabel(labels.get(graph.getId())[1]);
-        AnchorPane.setLeftAnchor(yAxis, 0.0);
-        AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
-        //Setting margin of y-axis and graph related to the x-axis height
-        xAxis.heightProperty().addListener((observable,oldV,newV) -> {
-            AnchorPane.setBottomAnchor(yAxis,newV.doubleValue());
-            AnchorPane.setBottomAnchor(graph, newV.doubleValue());
-        });
+            pane.getChildren().add(xAxis);
+            pane.getChildren().add(yAxis);
+            //Add x-axis
+            if (labels.containsKey(graph.getId()))
+                xAxis.setLabel(labels.get(graph.getId())[0]);
+            AnchorPane.setLeftAnchor(xAxis, 68.0);
+            AnchorPane.setRightAnchor(xAxis, 0.0);
+            AnchorPane.setBottomAnchor(xAxis, 0.0);
 
+            //Add y-axis
+            if (labels.containsKey(graph.getId()))
+                yAxis.setLabel(labels.get(graph.getId())[1]);
+            AnchorPane.setLeftAnchor(yAxis, 0.0);
+            AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
+            //Setting margin of y-axis and graph related to the x-axis height
+            xAxis.heightProperty().addListener((observable, oldV, newV) -> {
+                AnchorPane.setBottomAnchor(yAxis, newV.doubleValue());
+                AnchorPane.setBottomAnchor(graph, newV.doubleValue());
+            });
+            axisPlotted = true;
+        }
         Pane out;
         if (root == null)
             out = new Pane();
@@ -183,6 +189,7 @@ public class Plotter extends Application {
 
         out.getChildren().add(pane);
 
+        out.setPadding(new Insets(20));
         clear();
         return out;
     }

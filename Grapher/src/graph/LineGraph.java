@@ -51,7 +51,7 @@ public class LineGraph extends Region {
 
     public LineGraph(double width, double height, Theme theme){
         initialize(width, height);
-        Themes.applyTheme(theme, this);
+        Themes.applyTheme(theme, this, theme.getColor());
     }
 
     public LineGraph(double width, double height) {
@@ -143,6 +143,7 @@ public class LineGraph extends Region {
     ///////////////////////////////////////////////////////////////////////////
     // GETTERS SETTERS
     ///////////////////////////////////////////////////////////////////////////
+    @Deprecated
     public void setColor(Paint value){
         graphPath.setStroke(value);
         circleStyle.setFill(value);

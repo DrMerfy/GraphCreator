@@ -41,7 +41,9 @@ public class Plotter extends Application {
     private static double yEnd;
     private static double yIncrement;
 
-    private static double values = 0;
+    //Styling
+    private static boolean addGrid;
+
 
     public static void plot(Boolean sameWindow, LineGraph... graphs) {
         Plotter.sameWindow = sameWindow;
@@ -62,6 +64,11 @@ public class Plotter extends Application {
         }
     }
 
+
+    public static void enableGrid(boolean value) {
+        addGrid = value;
+    }
+
     public static void setTitle(String title, LineGraph graph) {
         titles.put(graph.getId(), title);
     }
@@ -78,10 +85,6 @@ public class Plotter extends Application {
     public static void mapYAxis(double start, double end, LineGraph graph) {
         AxisMap map = new AxisMap(start, end);
         yMapped.put(graph.getId(), map);
-    }
-
-    public static void clear() {
-        values = 0;
     }
 
     @Override
@@ -181,6 +184,7 @@ public class Plotter extends Application {
             });
             axisPlotted = true;
         }
+
         Pane out;
         if (root == null)
             out = new Pane();
@@ -190,7 +194,16 @@ public class Plotter extends Application {
         out.getChildren().add(pane);
 
         out.setPadding(new Insets(20));
-        clear();
+
+        //Add optional background
+        if(addGrid) {
+            graph.setStyle(" -fx-background-color: #EEEEEE00,\n" +
+                    "        linear-gradient(from 0.5px 0px to 10.5px 0px, repeat, #F5F5F5 5%, transparent 5%),\n" +
+                    "        linear-gradient(from 0px 0.5px to 0px 10.5px, repeat, #F5F5F5 5%, transparent 5%);");
+            out.setStyle("-fx-background-color: #EEEEEE");
+            addGrid = false;
+        }
+
         return out;
     }
 }

@@ -6,7 +6,7 @@ A simple and configurable graph creator using JavaFX.
 
 
 ## Screenshots
-![Simple Line Graph](GraphCreator/Demo/Screenshots/SimpleLineGraph.png?raw=true "Simple Line Graph")
+![Simple Line Graph](GraphCreator/Demo/Screenshots/SimpleLineGraph.png "Simple Line Graph")
 
 
 ![Traffic theme](GraphCreator/Demo/Screenshots/TrafficTheme.png?raw=true "Traffic Theme")

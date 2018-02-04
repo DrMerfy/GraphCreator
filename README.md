@@ -6,11 +6,11 @@ A simple and configurable graph creator using JavaFX.
 
 
 ## Screenshots
-![Simple Line Graph](GraphCreator/Demo/Screenshots/SimpleLineGraph.jpg?raw=true "Simple Line Graph")
+![Simple Line Graph](GraphCreator/Demo/Screenshots/SimpleLineGraph.png?raw=true "Simple Line Graph")
 
 
-![Traffic theme](GraphCreator/Demo/Screenshots/TrafficTheme.jpg?raw=true "Traffic Theme")
+![Traffic theme](GraphCreator/Demo/Screenshots/TrafficTheme.png?raw=true "Traffic Theme")
 
 
-![Smooth fill curves](GraphCreator/Demo/Screenshots/SmoothFillCurve.jpg?raw=true "Smooth Fill Curve")
+![Smooth fill curves](GraphCreator/Demo/Screenshots/SmoothFillCurve.png?raw=true "Smooth Fill Curve")
 

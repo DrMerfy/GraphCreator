@@ -47,6 +47,13 @@ public class Plotter extends Application {
 
     public static void plot(Boolean sameWindow, LineGraph... graphs) {
         Plotter.sameWindow = sameWindow;
+        //If more than one graphs are present, disable normalization not to lose information.
+        if (sameWindow)
+            for (LineGraph graph : graphs){
+
+                graph.reRender(graph.getRenderer());
+            }
+
         plot(graphs);
     }
 
@@ -139,8 +146,8 @@ public class Plotter extends Application {
             yMapped.remove(graph.getId());
 
         } else {
-            yStart = graph.getMinValue();
-            yEnd = graph.getMaxValue();
+            yStart = graph.getNormalizer().getMinValue();
+            yEnd = graph.getNormalizer().getMaxValue();
             yIncrement = (yEnd - yStart) / 10;
         }
     }
@@ -176,7 +183,7 @@ public class Plotter extends Application {
             if (labels.containsKey(graph.getId()))
                 yAxis.setLabel(labels.get(graph.getId())[1]);
             AnchorPane.setLeftAnchor(yAxis, 0.0);
-            AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getRealMaxHeight());
+            AnchorPane.setTopAnchor(yAxis, graph.getHeight() - graph.getNormalizer().getRealMaxHeight());
             //Setting margin of y-axis and graph related to the x-axis height
             xAxis.heightProperty().addListener((observable, oldV, newV) -> {
                 AnchorPane.setBottomAnchor(yAxis, newV.doubleValue());

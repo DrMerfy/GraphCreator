@@ -2,10 +2,11 @@ package graph;
 
 import graph.theme.Theme;
 import graph.theme.Themes;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineJoin;
@@ -29,14 +30,9 @@ public class LineGraph extends Region {
 
     private String path;
     private String pointLinesPath;
-    private ArrayList<Point2D> points;
+    private ObservableList<Point2D> points;
 
-    private double maxValue;
-    private double minValue;
-    private double normalizerY;
-    private double normalizerX;
     private boolean isRendered;
-    private boolean isNormalized;
     private boolean isManualEntry;
 
     //Layers
@@ -48,6 +44,11 @@ public class LineGraph extends Region {
     private double smoothing;
     private Circle circleStyle;
     private boolean close;
+    private boolean startAtZero;
+    private Render renderer;
+
+    //Normalizer
+    private Normalizer normalizer;
 
     public LineGraph(double width, double height, Theme theme){
         initialize(width, height);
@@ -68,9 +69,8 @@ public class LineGraph extends Region {
         this.setHeight(height);
         this.setMinWidth(width);
         this.setMinHeight(height);
-        this.points = new ArrayList<>();
+        this.points = FXCollections.observableArrayList();
         this.isRendered = false;
-        this.isNormalized = false;
         this.isManualEntry = false;
 
         //Unique identification
@@ -85,6 +85,7 @@ public class LineGraph extends Region {
         this.smoothing = 0.2;
         this.circleStyle = new Circle();
         this.close = true;
+        this.startAtZero = false;
         graphPath.setStrokeWidth(1);
         graphPath.setStroke(BLACK);
         graphPath.setFill(TRANSPARENT);
@@ -93,29 +94,40 @@ public class LineGraph extends Region {
         pointLines.setStroke(BLACK);
         circleStyle.setRadius(2);
         circleStyle.setFill(BLACK);
+
+        //Normalization
+        normalizer = new Normalizer(points, true, true, this.getWidth(), this.getHeight());
     }
 
     public void render(Render value){
+
         //Sort points based on x-axis
         if(isManualEntry){
             points.sort((t1, t2) -> (int)(t1.getX() - t2.getX()));
             this.setClose(false);
         }
+
         //Normalize x and y-axis values
-        if(!isNormalized)
-            normalize();
+        normalizer.normalize();
+
+        //Configure starting point
+        Point2D startingPoint = new Point2D(points.get(0).getX(), points.get(0).getY());
+        if(startAtZero){
+            startingPoint = new Point2D(0,0);
+        }
 
         isRendered = true;
+        renderer = value;
         switch (value){
             case GRAPH:
-                path = "M"+points.get(0).getX()+","+points.get(0).getY();
+                path = "M"+startingPoint.getX()+","+startingPoint.getY();
                 renderGraph();
                 path += close? "L"+String.valueOf(this.getWidth())+",0": "";
                 graphPath.setContent(path);
                 this.getChildren().add(graphPath);
                 break;
             case LINES:
-                pointLinesPath = "M"+points.get(0).getX() +","+points.get(0).getY();
+                pointLinesPath = "M"+startingPoint.getX() +","+startingPoint.getY();
                 renderLines();
                 pointLines.setContent(pointLinesPath);
                 this.getChildren().add(pointLines);
@@ -125,8 +137,8 @@ public class LineGraph extends Region {
                 this.getChildren().add(pointDots);
                 break;
             case ALL:
-                path = "M"+points.get(0).getX() +","+points.get(0).getY();
-                pointLinesPath = "M"+points.get(0).getX() +","+points.get(0).getY();
+                path = "M"+startingPoint.getX() +","+startingPoint.getY();
+                pointLinesPath = "M"+startingPoint.getX() +","+startingPoint.getY();
                 renderGraph();
                 renderLines();
                 renderPoints();
@@ -140,14 +152,21 @@ public class LineGraph extends Region {
 
     }
 
+    /**
+     * Deletes all the graphic content and re-renders the graph.
+     */
+    public void reRender(Render value) {
+        this.getChildren().clear();
+        path = "";
+        pointLinesPath = "";
+        normalizer.deNormalize();
+
+        render(value);
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // GETTERS SETTERS
     ///////////////////////////////////////////////////////////////////////////
-    @Deprecated
-    public void setColor(Paint value){
-        graphPath.setStroke(value);
-        circleStyle.setFill(value);
-    }
 
     public void setInterval(int interval) {
         this.interval = interval;
@@ -169,24 +188,20 @@ public class LineGraph extends Region {
         return points.size();
     }
 
-    public double getMaxValue() {
-        return maxValue;
-    }
-
-    public double getMinValue() {
-        return minValue;
-    }
-
-    public double getRealMaxHeight() {
-        return this.maxValue*normalizerY;
-    }
-
     public boolean isClose() {
         return close;
     }
 
     public void setClose(boolean close) {
         this.close = close;
+    }
+
+    public boolean isStartAtZero() {
+        return startAtZero;
+    }
+
+    public void startAtZero(boolean startAtZero) {
+        this.startAtZero = startAtZero;
     }
 
     public SVGPath getGraphPath() {
@@ -203,6 +218,14 @@ public class LineGraph extends Region {
 
     public boolean isRendered() {
         return isRendered;
+    }
+
+    public Render getRenderer() {
+        return renderer;
+    }
+
+    public Normalizer getNormalizer() {
+        return normalizer;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -229,7 +252,6 @@ public class LineGraph extends Region {
         if(point.getY() == Double.NaN)
             throw new RuntimeException("Y value must be a number.");
         points.add(point);
-        isNormalized = false;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -314,37 +336,4 @@ public class LineGraph extends Region {
 
         return new double[]{length, angle};
     }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // OTHERS
-    ///////////////////////////////////////////////////////////////////////////
-    private void normalize(){
-        isNormalized = true;
-        maxValue = points.get(0).getY();
-        minValue = points.get(0).getY();
-        for(Point2D p : points){
-            if(maxValue < p.getY())
-                maxValue = p.getY();
-            if(minValue > p.getY())
-                minValue = p.getY();
-        }
-
-        //Find max and min for x-axis
-        double maxValueX = points.get(0).getX();
-        double minValueX = points.get(0).getX();
-        for(Point2D p : points){
-            if(maxValueX < p.getX())
-                maxValueX = p.getX();
-            if(minValueX > p.getX())
-                minValueX = p.getX();
-        }
-
-        normalizerX = (this.getWidth())/maxValueX;
-        normalizerY = (0.9*this.getHeight())/maxValue ;
-
-        for(int i =0; i< points.size(); i++){
-            points.set(i, new Point2D(points.get(i).getX()* normalizerX, points.get(i).getY()* normalizerY));
-        }
-    }
-
 }

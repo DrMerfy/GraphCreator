@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 
 public enum Theme {
     SIMPLELINEGRAPH,
+    SMOOTHFILL,
     TRAFFIC;
 
     private Color color;

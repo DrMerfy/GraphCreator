@@ -33,6 +33,9 @@ public abstract class Themes {
             case SIMPLELINEGRAPH:
                 simpleLineGraph(graph);
                 break;
+            case SMOOTHFILL:
+                smoothFill(graph);
+                break;
         }
     }
 
@@ -62,12 +65,12 @@ public abstract class Themes {
     }
 
     private static void smoothFill(LineGraph graph) {
-        graph.setClose(false);
+        graph.startAtZero(true);
+        graph.setClose(true);
         graph.setSmoothing(0.2);
 
         graphPath.setStroke(Color.TRANSPARENT);
         graphPath.setFill(color);
-        graphPath.setOpacity(0.7);
 
         lines.setStroke(Color.TRANSPARENT);
 

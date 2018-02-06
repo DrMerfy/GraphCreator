@@ -1,16 +1,18 @@
 # GraphCreator
 A simple and configurable graph creator using JavaFX.
 
-![Current Release](https://github.com/DrMerfy/GraphCreator/releases/tag/v0.3.9)
+![Current Release](https://github.com/DrMerfy/GraphCreator/releases/tag/v0.3.9) (Java 8u152+)
 
-## class LineGraph()
->You can find a sample on how to use the class in Grapher>Demo
 
-### Linear line graphs
-![linear graphs](https://media.giphy.com/media/3oxHQz562hI7c2xaz6/giphy.gif)
 
-### Smooth graphs
-![smooth graphs](https://media.giphy.com/media/l3mZmJaMKOgMBbRWE/giphy.gif)
+## Screenshots
+![Simple Line Graph](Demo/Screenshots/SimpleLineGraph.png?raw=true "Simple Line Graph")
 
-### Multi graphs
-![multi graphs](https://media.giphy.com/media/l3mZra1wtdb730YHm/giphy.gif)
+
+![Traffic theme](Demo/Screenshots/TrafficTheme.png?raw=true "Traffic Theme")
+
+
+![Smooth fill curves](Demo/Screenshots/SmoothFillCurve.png?raw=true "Smooth Fill Curve")
+
+> You can find code on how to use those themes ![here](Demo/Themes)
+

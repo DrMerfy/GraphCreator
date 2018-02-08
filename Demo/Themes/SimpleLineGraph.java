@@ -11,7 +11,7 @@ import static java.lang.StrictMath.abs;
 import static java.lang.StrictMath.sin;
 
 
-public class Main extends Application {
+public class SimpleLineGraph extends Application {
     public static void main(String[] args) {
         Application.launch(args);
     }
@@ -22,9 +22,7 @@ public class Main extends Application {
 
         //---->Default graph using plotter<----
         LineGraph graph = new LineGraph(600,300, Theme.SIMPLELINEGRAPH);
-        LineGraph graph1 = new LineGraph(600, 300, Theme.SIMPLELINEGRAPH);
-        //Explicitly set color
-        graph1.setColor(Color.valueOf("#03A9F4"));
+        LineGraph graph1 = new LineGraph(600, 300, Theme.SIMPLELINEGRAPH.withColor(Color.valueOf("#03A9F4")));
 
         //Populating the graph
         for (int i=0; i<30; i++) {

@@ -30,8 +30,7 @@ public class Traffic extends Application {
             graph.addValue(value);
         }
 
-        graph.render(LineGraph.Render.ALL);
-
+        //Background styling
         StackPane background = new StackPane();
         background.setPrefHeight(300);
         background.setPrefWidth(600);

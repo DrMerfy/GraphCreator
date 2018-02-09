@@ -52,9 +52,17 @@ public class Plotter extends Application {
         plot(graphs);
     }
 
+    /**
+     * Plots the graphs specified. (Also renders them)
+     * @param graphs
+     */
     public static void plot(LineGraph... graphs) {
         //if (plotted)
           //  throw new RuntimeException("Plot can be called only once. Instead put all graphs in one call.");
+        //Render the graphs
+        for( LineGraph graph : graphs)
+            graph.render(LineGraph.Render.ALL);
+
         plotted = true;
 
         Plotter.graphs = graphs;

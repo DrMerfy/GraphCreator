@@ -35,11 +35,6 @@ public class SmoothFillCurve extends Application {
             graph2.addValue(values2[i]);
         }
 
-        //Render everything, as the theme will take care of the rest
-        graph.render(LineGraph.Render.ALL);
-        graph1.render(LineGraph.Render.ALL);
-        graph2.render(LineGraph.Render.ALL);
-
         Plotter.setTitle("Click number", graph);
         Plotter.plot(true, graph2, graph1, graph);
     }

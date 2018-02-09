@@ -30,10 +30,6 @@ public class SimpleLineGraph extends Application {
             graph1.addValue(0.17*i + abs(sin(new Random().nextInt(180))));
         }
 
-        //Render everything, as the theme will take care of the rest
-        graph.render(LineGraph.Render.ALL);
-        graph1.render(LineGraph.Render.ALL);
-
         Plotter.enableGrid(true);
         Plotter.setTitle("Transfer rate",graph1);
         Plotter.setAxisLabel("day (January)","GB/s",graph);

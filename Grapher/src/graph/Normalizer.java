@@ -1,12 +1,9 @@
 package graph;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 
-import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * The normalizer class adds a normalization function to the graph. The default behaviour will
@@ -14,6 +11,13 @@ import java.util.Collections;
  * 90% of the window's height and the y axis will match the window's width.
  */
 public class Normalizer {
+    public enum Type {
+        OBJECTIVE,
+        NONOBJECTIVE
+    }
+
+    private static Type normalizationType = Type.OBJECTIVE;
+
     private ObservableList<Point2D> points;
 
     private double maxValue;
@@ -59,39 +63,12 @@ public class Normalizer {
         if (isNormalized)
             return;
 
-        isNormalized = true;
-        maxValue = points.get(0).getY();
-        minValue = points.get(0).getY();
-        for(Point2D p : points){
-            if(maxValue < p.getY())
-                maxValue = p.getY();
-            if(minValue > p.getY())
-                minValue = p.getY();
+        switch (normalizationType) {
+            case OBJECTIVE:
+                normalizeObjectively();
+                break;
         }
 
-        //Find max and min for x-axis
-        double maxValueX = points.get(0).getX();
-        double minValueX = points.get(0).getX();
-        for(Point2D p : points){
-            if(maxValueX < p.getX())
-                maxValueX = p.getX();
-            if(minValueX > p.getX())
-                minValueX = p.getX();
-        }
-
-        //Assume no normalization
-        normalizerX = 1;
-        normalizerY = 1;
-
-        //Calculate normalizers accordingly
-        if (normalizeX)
-            normalizerX = (this.width)/maxValueX;
-        if (normalizeY)
-            normalizerY = (0.9*this.height)/maxValue ;
-
-        for(int i =0; i< points.size(); i++){
-            points.set(i, new Point2D(points.get(i).getX()* normalizerX, points.get(i).getY()* normalizerY));
-        }
     }
 
     void deNormalize() {
@@ -101,6 +78,16 @@ public class Normalizer {
             for(int i =0; i< points.size(); i++){
                 points.set(i, new Point2D(points.get(i).getX() / normalizerX, points.get(i).getY() / normalizerY));
             }
+    }
+
+
+    /**
+     * Specifies the normalization type.
+     * @param type OBJECTIVE: Each graph will be normalized with each own parameters
+     *             NONOBJECTIVE: All the graphs will have the same normalization amount.
+     */
+    public void normalizationType(Type type) {
+        normalizationType = type;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -132,6 +119,52 @@ public class Normalizer {
 
     public void normalizeY(boolean normalizeY) {
         this.normalizeY = normalizeY;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Normalizers
+    ///////////////////////////////////////////////////////////////////////////
+
+    private void normalizeObjectively() {
+        isNormalized = true;
+        maxValue = points.get(0).getY();
+        minValue = points.get(0).getY();
+        for(Point2D p : points){
+            if(maxValue < p.getY())
+                maxValue = p.getY();
+            if(minValue > p.getY())
+                minValue = p.getY();
+        }
+
+        System.out.println(maxValue);
+
+        //Find max and min for x-axis
+        double maxValueX = points.get(0).getX();
+        double minValueX = points.get(0).getX();
+        for(Point2D p : points){
+            if(maxValueX < p.getX())
+                maxValueX = p.getX();
+            if(minValueX > p.getX())
+                minValueX = p.getX();
+        }
+
+        //Assume no normalization
+        normalizerX = 1;
+        normalizerY = 1;
+
+        //Calculate normalizers accordingly
+        if (normalizeX)
+            normalizerX = (this.width)/maxValueX;
+        if (normalizeY)
+            normalizerY = (0.9*this.height)/maxValue ;
+
+        for(int i =0; i< points.size(); i++){
+            points.set(i, new Point2D(points.get(i).getX()* normalizerX, points.get(i).getY()* normalizerY));
+        }
+    }
+
+    private void normalizeNonObjectively() {
+
     }
 
 

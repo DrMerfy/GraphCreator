@@ -48,11 +48,6 @@ public class Plotter extends Application {
     public static void plot(Boolean sameWindow, LineGraph... graphs) {
         Plotter.sameWindow = sameWindow;
         //If more than one graphs are present, disable normalization not to lose information.
-        if (sameWindow)
-            for (LineGraph graph : graphs){
-
-                graph.reRender(graph.getRenderer());
-            }
 
         plot(graphs);
     }

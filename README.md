@@ -5,6 +5,11 @@ A simple and configurable graph creator using JavaFX.
 
 
 
+## Projects using GraphCreator
+![TDMASim](https://github.com/DrMerfy/TDMASim)
+
+
+
 ## Screenshots
 ![Simple Line Graph](Demo/Screenshots/SimpleLineGraph.png?raw=true "Simple Line Graph")
 

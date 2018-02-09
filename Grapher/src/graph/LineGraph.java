@@ -257,7 +257,7 @@ public class LineGraph extends Region {
     ///////////////////////////////////////////////////////////////////////////
     // RENDERERS
     ///////////////////////////////////////////////////////////////////////////
-    public void renderGraph(){
+    private void renderGraph(){
         //Calculate smooth curve
         //see: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
         Point2D controlStart;

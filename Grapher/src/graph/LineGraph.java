@@ -54,11 +54,31 @@ public class LineGraph extends Region {
     //Rendering (will be factorisized)
     private BooleanProperty onRenderCompleted;
 
+    /**
+     * Constructs a LineGraph object based on the specified theme. The dimensions of the graph are calculated based on
+     * the screen that the application is plotted.
+     * @param theme the specified theme.
+     */
+    public LineGraph(Theme theme) {
+        this(Screen.getWidth()/1.5, Screen.getHeight()/2, theme);
+    }
+
+    /**
+     *  Constructs a LineGraph object based on the specified theme and dimensions.
+     * @param width the width of the graph in pixels.
+     * @param height the height of the graph in pixels.
+     * @param theme the specified theme.
+     */
     public LineGraph(double width, double height, Theme theme){
         initialize(width, height);
         Themes.applyTheme(theme, this, theme.getColor());
     }
 
+    /**
+     *  Constructs a LineGraph object based on the specified theme and dimensions.
+     * @param width the width of the graph in pixels.
+     * @param height the height of the graph in pixels.
+     */
     public LineGraph(double width, double height) {
         initialize(width,height);
     }

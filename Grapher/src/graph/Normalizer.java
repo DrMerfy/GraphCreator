@@ -1,8 +1,12 @@
 package graph;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
+
+import java.util.ArrayList;
 
 
 /**
@@ -18,6 +22,18 @@ public class Normalizer {
 
     private static Type normalizationType = Type.OBJECTIVE;
 
+    //Non objective normalization values
+    private static double generalMaxValueY = Double.MIN_VALUE;
+    private static double generalMaxValueX = Double.MIN_VALUE;
+
+    private static double catholicNormalizerX = 1;
+    private static double catholicNormalizerY = 1;
+
+    private static ArrayList<ObservableList<Point2D>> allGraphPoints = new ArrayList<>();
+    //This is evaluated to true when all the graphs are normalized.
+    private static BooleanProperty catholicCompletion = new SimpleBooleanProperty(false);
+    //Objective normalization values
+
     private ObservableList<Point2D> points;
 
     private double maxValue;
@@ -29,9 +45,9 @@ public class Normalizer {
 
     private boolean normalizeX;
     private boolean normalizeY;
+    private BooleanProperty normalizationCompleted;
 
-    private double width;
-    private double height;
+    private LineGraph self;
 
     /**
      *
@@ -39,26 +55,25 @@ public class Normalizer {
      *               so the arraylist could be just the empty instance.
      * @param normalizeX if the normalization of the x axis is wanted.
      * @param normalizeY if the normalization of the y axis is wanted.
-     * @param width the width of the graph.
-     * @param height the height of the graph.
+     * @param self the graph in which the normalizer will be applied.
      */
-    Normalizer(ObservableList<Point2D> points, boolean normalizeX, boolean normalizeY, double width, double height) {
+    Normalizer(ObservableList<Point2D> points, boolean normalizeX, boolean normalizeY, LineGraph self) {
         this.points = points;
         this.normalizeX = normalizeX;
         this.normalizeY = normalizeY;
-        this.width = width;
-        this.height = height;
-        //In the beginning no normalization has occured.
+        this.self = self;
+        //In the beginning no normalization has occurred.
         this.isNormalized = false;
-
+        this.normalizationCompleted = new SimpleBooleanProperty(false);
 
         //Every time a new point is added the graph is not normalized
         points.addListener((ListChangeListener.Change<? extends Point2D> obs) -> {
-            isNormalized = false;
+            //isNormalized = false;
         });
+
     }
 
-    void normalize(){
+    public void normalize(){
         //Don't normalize twice.
         if (isNormalized)
             return;
@@ -67,17 +82,11 @@ public class Normalizer {
             case OBJECTIVE:
                 normalizeObjectively();
                 break;
+            case NONOBJECTIVE:
+                normalizeNonObjectively();
+                break;
         }
 
-    }
-
-    void deNormalize() {
-        isNormalized = false;
-
-        if (! normalizeX )
-            for(int i =0; i< points.size(); i++){
-                points.set(i, new Point2D(points.get(i).getX() / normalizerX, points.get(i).getY() / normalizerY));
-            }
     }
 
 
@@ -88,6 +97,30 @@ public class Normalizer {
      */
     public void normalizationType(Type type) {
         normalizationType = type;
+
+        if ( type.equals(Type.NONOBJECTIVE)){
+            //Non objective initialization
+            //Keep track of all the points of all the graphs
+            allGraphPoints.add(this.points);
+
+            //Add a listener so when the normalizers are calculated, then implement the normalization.
+
+            catholicCompletion.addListener((observable, oldValue, newValue) -> {
+                //Normalize X axis
+                    for (int i = 0; i < points.size(); i++) {
+                        points.set(i, new Point2D(points.get(i).getX() * catholicNormalizerX, points.get(i).getY()));
+                    }
+
+                //Normalize Y axis
+                for (int i = 0; i < points.size(); i++) {
+                    points.set(i, new Point2D(points.get(i).getX(), points.get(i).getY() * catholicNormalizerY));
+                }
+
+
+                this.normalizationCompleted.setValue(true);
+
+            });
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -121,6 +154,10 @@ public class Normalizer {
         this.normalizeY = normalizeY;
     }
 
+    public BooleanProperty normalizationCompletedProperty() {
+        return normalizationCompleted;
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // Normalizers
     ///////////////////////////////////////////////////////////////////////////
@@ -129,6 +166,61 @@ public class Normalizer {
         isNormalized = true;
         maxValue = points.get(0).getY();
         minValue = points.get(0).getY();
+
+        double maxValueX = findMinMax();
+        //Assume no normalization
+        normalizerX = 1;
+        normalizerY = 1;
+
+        //Calculate normalizers accordingly
+        if (normalizeX)
+            normalizerX = (this.self.getWidth())/maxValueX;
+        if (normalizeY)
+            normalizerY = (0.9*this.self.getHeight())/maxValue;
+
+        for(int i =0; i< points.size(); i++){
+            points.set(i, new Point2D(points.get(i).getX()* normalizerX, points.get(i).getY()* normalizerY));
+        }
+
+        normalizationCompleted.setValue(true);
+    }
+
+    private void normalizeNonObjectively() {
+        //Calculate the min-maxes
+        double maxValueX = findMinMax();
+
+        //If the max value is larger than the max value of the previous graphs then the normalizer of this graph
+        //must be used
+        if (maxValueX > generalMaxValueX) {
+            generalMaxValueX = maxValueX;
+
+            normalizerX = 1;
+            if (normalizeX)
+                normalizerX = (self.getWidth())/maxValueX;
+
+            //normalizerXProperty.setValue(normalizerX);
+            catholicNormalizerX = normalizerX;
+        }
+
+        if (maxValue > generalMaxValueY) {
+            generalMaxValueY = maxValue;
+
+            normalizerY = 1;
+            if (normalizeY)
+                normalizerY = (0.9*self.getHeight())/maxValue ;
+
+            catholicNormalizerY = normalizerY;
+            //normalizerYProperty.setValue(normalizerY);
+        }
+
+        //If it's the last graph to in the normalization list, the normalization of all graphs is complete
+        if(allGraphPoints.indexOf(this.points) == allGraphPoints.size() -1) {
+            catholicCompletion.setValue(true);
+        }
+    }
+
+
+    private double findMinMax() {
         for(Point2D p : points){
             if(maxValue < p.getY())
                 maxValue = p.getY();
@@ -136,35 +228,13 @@ public class Normalizer {
                 minValue = p.getY();
         }
 
-        System.out.println(maxValue);
-
-        //Find max and min for x-axis
         double maxValueX = points.get(0).getX();
-        double minValueX = points.get(0).getX();
+        //Find max for x-axis
         for(Point2D p : points){
             if(maxValueX < p.getX())
                 maxValueX = p.getX();
-            if(minValueX > p.getX())
-                minValueX = p.getX();
         }
-
-        //Assume no normalization
-        normalizerX = 1;
-        normalizerY = 1;
-
-        //Calculate normalizers accordingly
-        if (normalizeX)
-            normalizerX = (this.width)/maxValueX;
-        if (normalizeY)
-            normalizerY = (0.9*this.height)/maxValue ;
-
-        for(int i =0; i< points.size(); i++){
-            points.set(i, new Point2D(points.get(i).getX()* normalizerX, points.get(i).getY()* normalizerY));
-        }
-    }
-
-    private void normalizeNonObjectively() {
-
+        return maxValueX;
     }
 
 

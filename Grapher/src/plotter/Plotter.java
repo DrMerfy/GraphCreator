@@ -1,6 +1,7 @@
 package plotter;
 
 import graph.LineGraph;
+import graph.Normalizer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
@@ -47,8 +48,10 @@ public class Plotter extends Application {
 
     public static void plot(Boolean sameWindow, LineGraph... graphs) {
         Plotter.sameWindow = sameWindow;
-        //If more than one graphs are present, disable normalization not to lose information.
-
+        //If more than one graphs are present, make the normalization amount equal for all the graphs.
+        for (LineGraph graph : graphs) {
+            graph.getNormalizer().normalizationType(Normalizer.Type.NONOBJECTIVE);
+        }
         plot(graphs);
     }
 
@@ -156,8 +159,10 @@ public class Plotter extends Application {
     }
 
     private static Pane plotGraph(Pane root, LineGraph graph) {
-        if (!graph.isRendered())
+        if (!graph.isRendered()) {
             graph.render(LineGraph.Render.ALL);
+        }
+        System.out.println(graph.getGraphPath().toString());
         handleMapping(graph);
         //The holder
         AnchorPane pane = new AnchorPane();

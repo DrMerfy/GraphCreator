@@ -2,6 +2,8 @@ package graph;
 
 import graph.theme.Theme;
 import graph.theme.Themes;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
@@ -11,7 +13,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineJoin;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 import static java.lang.Math.*;
@@ -49,6 +50,9 @@ public class LineGraph extends Region {
 
     //Normalizer
     private Normalizer normalizer;
+
+    //Rendering (will be factorisized)
+    private BooleanProperty onRenderCompleted;
 
     public LineGraph(double width, double height, Theme theme){
         initialize(width, height);
@@ -96,7 +100,9 @@ public class LineGraph extends Region {
         circleStyle.setFill(BLACK);
 
         //Normalization
-        normalizer = new Normalizer(points, true, true, this.getWidth(), this.getHeight());
+        normalizer = new Normalizer(points, true, true, this);
+
+        this.onRenderCompleted = new SimpleBooleanProperty();
     }
 
     public void render(Render value){
@@ -107,61 +113,54 @@ public class LineGraph extends Region {
             this.setClose(false);
         }
 
+        //Render only when the normalization is completed
+        normalizer.normalizationCompletedProperty().addListener((observable, oldValue, normalized) -> {
+            if(!normalized)
+                return;
+            //Configure starting point
+            Point2D startingPoint = new Point2D(points.get(0).getX(), points.get(0).getY());
+            if(startAtZero){
+                startingPoint = new Point2D(0,0);
+            }
+
+            isRendered = true;
+            renderer = value;
+            switch (value){
+                case GRAPH:
+                    path = "M"+startingPoint.getX()+","+startingPoint.getY();
+                    renderGraph();
+                    path += close? "L"+String.valueOf(this.getWidth())+",0": "";
+                    graphPath.setContent(path);
+                    this.getChildren().add(graphPath);
+                    break;
+                case LINES:
+                    pointLinesPath = "M"+startingPoint.getX() +","+startingPoint.getY();
+                    renderLines();
+                    pointLines.setContent(pointLinesPath);
+                    this.getChildren().add(pointLines);
+                    break;
+                case POINTS:
+                    renderPoints();
+                    this.getChildren().add(pointDots);
+                    break;
+                case ALL:
+                    path = "M"+startingPoint.getX() +","+startingPoint.getY();
+                    pointLinesPath = "M"+startingPoint.getX() +","+startingPoint.getY();
+                    renderGraph();
+                    renderLines();
+                    renderPoints();
+
+                    path += close? "L"+String.valueOf(this.getWidth())+",0": "";
+
+                    graphPath.setContent(path);
+                    pointLines.setContent(pointLinesPath);
+                    this.getChildren().addAll(graphPath, pointLines, pointDots);
+            }
+        });
+
         //Normalize x and y-axis values
         normalizer.normalize();
 
-        //Configure starting point
-        Point2D startingPoint = new Point2D(points.get(0).getX(), points.get(0).getY());
-        if(startAtZero){
-            startingPoint = new Point2D(0,0);
-        }
-
-        isRendered = true;
-        renderer = value;
-        switch (value){
-            case GRAPH:
-                path = "M"+startingPoint.getX()+","+startingPoint.getY();
-                renderGraph();
-                path += close? "L"+String.valueOf(this.getWidth())+",0": "";
-                graphPath.setContent(path);
-                this.getChildren().add(graphPath);
-                break;
-            case LINES:
-                pointLinesPath = "M"+startingPoint.getX() +","+startingPoint.getY();
-                renderLines();
-                pointLines.setContent(pointLinesPath);
-                this.getChildren().add(pointLines);
-                break;
-            case POINTS:
-                renderPoints();
-                this.getChildren().add(pointDots);
-                break;
-            case ALL:
-                path = "M"+startingPoint.getX() +","+startingPoint.getY();
-                pointLinesPath = "M"+startingPoint.getX() +","+startingPoint.getY();
-                renderGraph();
-                renderLines();
-                renderPoints();
-
-                path += close? "L"+String.valueOf(this.getWidth())+",0": "";
-
-                graphPath.setContent(path);
-                pointLines.setContent(pointLinesPath);
-                this.getChildren().addAll(graphPath, pointLines, pointDots);
-        }
-
-    }
-
-    /**
-     * Deletes all the graphic content and re-renders the graph.
-     */
-    public void reRender(Render value) {
-        this.getChildren().clear();
-        path = "";
-        pointLinesPath = "";
-        normalizer.deNormalize();
-
-        render(value);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -228,6 +227,10 @@ public class LineGraph extends Region {
         return normalizer;
     }
 
+    public BooleanProperty onRenderCompletedProperty() {
+        return onRenderCompleted;
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // POINT ADDERS
     ///////////////////////////////////////////////////////////////////////////
@@ -270,12 +273,12 @@ public class LineGraph extends Region {
         path += "C"+controlStart.getX()+","+controlStart.getY()+","+controlEnd.getX()+","+controlEnd.getY()+","+
                 points.get(1).getX()+","+points.get(1).getY();
 
-
         for(int i = 2; i<points.size()-1; i++) {
             controlStart = getControlPoint(points.get(i - 2), points.get(i - 1), points.get(i), false);
             controlEnd = getControlPoint(points.get(i - 1), points.get(i), points.get(i + 1), true);
             path += "C" + controlStart.getX() + "," + controlStart.getY() + "," + controlEnd.getX() + "," + controlEnd.getY() + "," +
                     points.get(i).getX() + "," + points.get(i).getY();
+            //System.out.println(points.get(i).getX()+","+points.get(i).getY());
         }
 
         int last = points.size() - 1;

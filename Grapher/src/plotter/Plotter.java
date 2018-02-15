@@ -46,7 +46,7 @@ public class Plotter extends Application {
     private static boolean addGrid;
 
 
-    public static void plot(Boolean sameWindow, LineGraph... graphs) {
+    public static void plot(Boolean sameWindow, LineGraph... graphs) throws Exception {
         Plotter.sameWindow = sameWindow;
         //If more than one graphs are present, make the normalization amount equal for all the graphs.
         for (LineGraph graph : graphs) {
@@ -59,7 +59,7 @@ public class Plotter extends Application {
      * Plots the graphs specified. (Also renders them)
      * @param graphs
      */
-    public static void plot(LineGraph... graphs) {
+    public static void plot(LineGraph... graphs) throws Exception {
         //if (plotted)
           //  throw new RuntimeException("Plot can be called only once. Instead put all graphs in one call.");
         //Render the graphs
@@ -101,11 +101,11 @@ public class Plotter extends Application {
     }
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws Exception {
         showGraphs();
     }
 
-    private static void showGraphs() {
+    private static void showGraphs() throws Exception {
         Stage oneStage = new Stage();
         if (!sameWindow) {
             for (LineGraph graph : graphs) {
@@ -152,17 +152,30 @@ public class Plotter extends Application {
             yMapped.remove(graph.getId());
 
         } else {
-            yStart = graph.getNormalizer().getMinValue();
-            yEnd = graph.getNormalizer().getMaxValue();
+            //Find max and min y
+            if (sameWindow) {
+                double startY = Double.MAX_VALUE;
+                double endY = Double.MIN_VALUE;
+                for (LineGraph grh : graphs) {
+                    if(grh.getNormalizer().getMinValue() < startY)
+                        startY = grh.getNormalizer().getMinValue();
+                    if(grh.getNormalizer().getMaxValue() > endY)
+                        endY = grh.getNormalizer().getMaxValue();
+                }
+                yStart = startY;
+                yEnd = endY;
+            }else {
+                yStart = graph.getNormalizer().getMinValue();
+                yEnd = graph.getNormalizer().getMaxValue();
+            }
             yIncrement = (yEnd - yStart) / 10;
         }
     }
 
-    private static Pane plotGraph(Pane root, LineGraph graph) {
+    private static Pane plotGraph(Pane root, LineGraph graph) throws Exception {
         if (!graph.isRendered()) {
             graph.render(LineGraph.Render.ALL);
         }
-        System.out.println(graph.getGraphPath().toString());
         handleMapping(graph);
         //The holder
         AnchorPane pane = new AnchorPane();
@@ -173,7 +186,7 @@ public class Plotter extends Application {
 
         //Creates axises
 
-        if(sameWindow && !axisPlotted) {
+        if(!sameWindow || !axisPlotted ) {
             NumberAxis xAxis = new NumberAxis(xStart, xEnd, xIncrement);
             NumberAxis yAxis = new NumberAxis(yStart, yEnd, yIncrement);
             yAxis.setSide(Side.LEFT);

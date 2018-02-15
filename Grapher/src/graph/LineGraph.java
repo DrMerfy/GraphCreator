@@ -105,7 +105,10 @@ public class LineGraph extends Region {
         this.onRenderCompleted = new SimpleBooleanProperty();
     }
 
-    public void render(Render value){
+    public void render(Render value) throws Exception {
+        //Check if graph is valid
+        if (points.size() < 3)
+            throw new Exception("Cannot render graph with less the 3 points in it.");
 
         //Sort points based on x-axis
         if(isManualEntry){

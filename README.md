@@ -1,7 +1,7 @@
 # GraphCreator
 A simple and configurable graph creator using JavaFX.
 
-![Current Release](https://github.com/DrMerfy/GraphCreator/releases/tag/v0.3.9) (Java 8u152+)
+![Current Release](https://github.com/DrMerfy/GraphCreator/releases/tag/v0.4.2-alpha) (Java 8u152+)
 
 
 

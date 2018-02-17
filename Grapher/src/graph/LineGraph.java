@@ -125,10 +125,10 @@ public class LineGraph extends Region {
         this.onRenderCompleted = new SimpleBooleanProperty();
     }
 
-    public void render(Render value) throws Exception {
+    public void render(Render value) throws RenderException {
         //Check if graph is valid
         if (points.size() < 3)
-            throw new Exception("Cannot render graph with less the 3 points in it.");
+            throw new RenderException("Insufficient points in graph.", new Throwable("Graph was tried to be rendered using "+points.size()+" points."));
 
         //Sort points based on x-axis
         if(isManualEntry){
@@ -257,7 +257,7 @@ public class LineGraph extends Region {
     ///////////////////////////////////////////////////////////////////////////
     // POINT ADDERS
     ///////////////////////////////////////////////////////////////////////////
-    public void addValue(double value){
+    public void addValue(double value) throws RenderException {
         addPointLocal(new Point2D(currentX, value));
         currentX+= interval;
     }
@@ -267,16 +267,16 @@ public class LineGraph extends Region {
      * @param x The x cartesian coordinates of the point.
      * @param y The y cartesian coordinates of the point.
      */
-    public void addPoint(double x, double y){
+    public void addPoint(double x, double y) throws RenderException {
         addPointLocal(new Point2D(x,y));
         isManualEntry = true;
     }
 
-    private void addPointLocal(Point2D point){
+    private void addPointLocal(Point2D point) throws RenderException {
         if(point.getX() == Double.NaN)
-            throw new RuntimeException("X value must be a number.");
+            throw new RenderException("Invalid value.", new Throwable("X value must be a number."));
         if(point.getY() == Double.NaN)
-            throw new RuntimeException("Y value must be a number.");
+            throw new RenderException("Invalid value.", new Throwable("Y value must be a number."));
         points.add(point);
     }
 
